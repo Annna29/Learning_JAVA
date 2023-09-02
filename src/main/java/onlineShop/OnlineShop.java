@@ -1,12 +1,12 @@
-package OnlineShop;
-import DB.DB_Keys;
-import DB.DB_PRODUCTS;
-import DB.DB_Persons;
-import Persons.Admin;
-import Persons.Person;
-import Persons.User;
-import Products.*;
-import Util.*;
+package onlineShop;
+import db.DB_Keys;
+import db.DB_PRODUCTS;
+import db.DB_Persons;
+import persons.Admin;
+import persons.Person;
+import persons.User;
+import products.*;
+import util.*;
 
 
 import javax.crypto.BadPaddingException;

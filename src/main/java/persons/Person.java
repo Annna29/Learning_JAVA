@@ -1,7 +1,7 @@
-package Persons;
+package persons;
 
-import Products.Product;
-import Util.*;
+import products.Product;
+import util.*;
 
 
 import java.util.ArrayList;

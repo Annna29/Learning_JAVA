@@ -1,6 +1,6 @@
-package DB;
+package db;
 
-import Products.Product;
+import products.Product;
 
 import java.util.ArrayList;
 

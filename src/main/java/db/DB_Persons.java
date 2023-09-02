@@ -1,5 +1,5 @@
-package DB;
-import Persons.Person;
+package db;
+import persons.Person;
 import java.util.HashMap;
 
 public class DB_Persons {

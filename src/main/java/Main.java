@@ -1,4 +1,4 @@
-import OnlineShop.OnlineShop;
+import onlineShop.OnlineShop;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;

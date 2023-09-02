@@ -1,9 +1,9 @@
-package Products;
+package products;
 
-import Util.Category;
-import Util.Constants;
-import Util.Validation;
-import Util.ValidationType;
+import util.Category;
+import util.Constants;
+import util.Validation;
+import util.ValidationType;
 
 public class Clothes extends Product{
 

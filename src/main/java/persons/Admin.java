@@ -1,10 +1,10 @@
-package Persons;
-import DB.DB_Keys;
-import Products.Product;
-import Util.Constants;
-import Util.RSA;
-import Util.Validation;
-import Util.ValidationType;
+package persons;
+import db.DB_Keys;
+import products.Product;
+import util.Constants;
+import util.RSA;
+import util.Validation;
+import util.ValidationType;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;

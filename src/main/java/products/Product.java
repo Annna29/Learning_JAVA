@@ -1,6 +1,6 @@
-package Products;
+package products;
 
-import Util.*;
+import util.*;
 
 
 public class Product {

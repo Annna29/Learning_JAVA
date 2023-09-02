@@ -1,4 +1,4 @@
-package DB;
+package db;
 
 import java.security.KeyPair;
 import java.security.PrivateKey;

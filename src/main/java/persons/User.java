@@ -1,6 +1,6 @@
-package Persons;
-import Products.Product;
-import Util.Constants;
+package persons;
+import products.Product;
+import util.Constants;
 
 import java.util.ArrayList;
 import java.util.InputMismatchException;
