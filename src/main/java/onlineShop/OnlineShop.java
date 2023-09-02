@@ -76,11 +76,11 @@ public class OnlineShop {
         db_prod.getListOfProduct().add(new Laptop(Category.ELECTRONICE,4,"Dell4","Powerfull for gaming",4800,0,12));
         db_prod.getListOfProduct().add(new Laptop(Category.ELECTRONICE,5,"Dell5","Powerfull for gaming",4800,0,1));
         db_prod.getListOfProduct().add(new Laptop(Category.ELECTRONICE,6,"Dell6","Powerfull for gaming",4800,78,0));
-        db_prod.getListOfProduct().add(new Laptop(Category.ELECTRONICE,2,"Lenovo","Powerfull for gaming",4800,0,4));
-        db_prod.getListOfProduct().add(new Product(Category.ALIMENTE,1,"Lapte","delicious",35,0,5));
-        db_prod.getListOfProduct().add(new Product(Category.ALIMENTE,2,"Cafea"," tasty almond",50,0,1));
-        db_prod.getListOfProduct().add(new Product(Category.ELECTRONICE,100,"Laptop ASUS","Powerfull laptop",3500,0,0));
-        db_prod.getListOfProduct().add(new Product(Category.ALIMENTE,3,"Dellicious Almond Chocolate"," tasty almond",50,0,0));
+        db_prod.getListOfProduct().add(new Laptop(Category.ELECTRONICE,7,"Lenovo","Powerfull for gaming",4800,0,4));
+        db_prod.getListOfProduct().add(new Product(Category.ALIMENTE,8,"Lapte","delicious",35,0,5));
+        db_prod.getListOfProduct().add(new Product(Category.ALIMENTE,9,"Cafea"," tasty almond",50,0,1));
+        db_prod.getListOfProduct().add(new Product(Category.ELECTRONICE,10,"Laptop ASUS","Powerfull laptop",3500,0,0));
+        db_prod.getListOfProduct().add(new Product(Category.ALIMENTE,11,"Dellicious Almond Chocolate"," tasty almond",50,0,0));
 
 
     }
@@ -208,7 +208,7 @@ public class OnlineShop {
         db_k.addKeys(newUser.getUsername(), RSA.genRSAKeys());
 
         byte[] RSAPassword = RSA.applyRSAEncryptingData(newPersonPass, db_k.getPublicKeyForUser(newUser.getUsername()));
-        System.out.println(Base64.getEncoder().encodeToString(RSAPassword));
+       // System.out.println(Base64.getEncoder().encodeToString(RSAPassword));
         newUser.setPassword(RSAPassword);
 
         //
@@ -245,7 +245,7 @@ public class OnlineShop {
             // Fetch keys in order to decrypt the pass.
             PrivateKey privateKey = db_k.getPrivateKeyForUser(username);
             decryptedPass = RSA.applyRSADecryptingData(db_p.getMapPersons().get(username).getPassword(), privateKey);
-            System.out.println("Decrypted Pass: " + decryptedPass);
+         //   System.out.println("Decrypted Pass: " + decryptedPass);
             if(decryptedPass.equals(password)){
                 System.out.println("You have successfully log in ! ");
                 return db_p.getMapPersons().get(username);
