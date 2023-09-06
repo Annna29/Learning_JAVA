@@ -1,3 +1,5 @@
+package main;
+
 import onlineShop.OnlineShop;
 
 import javax.crypto.BadPaddingException;
