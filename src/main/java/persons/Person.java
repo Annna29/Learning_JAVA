@@ -1,22 +1,33 @@
 package persons;
 
+import jakarta.persistence.*;
+import keys.PersonKey;
 import products.Product;
 import util.*;
 
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Scanner;
+import java.util.*;
 
+@Entity
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public class Person {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "keyId", referencedColumnName = "id")
+    private PersonKey personKey;
+
     private String secondName;
     private String firstName;
     private String dateOfBirth;
     private String address;
     private String username;
-    //private String password;
+    private String pass;
     private byte[] password;
+
 
     public Person() {
     }
@@ -26,12 +37,19 @@ public class Person {
         this.password = password;
     }
 
+    public Person(String username, String pass, PersonKey personKey) {
+        this.username = username;
+        this.pass = pass;
+        this.personKey=personKey;
+    }
+
     public Person(String secondName, String firstName, String dateOfBirth, String address) {
         this.secondName = secondName;
         this.firstName = firstName;
         this.dateOfBirth = dateOfBirth;
         this.address = address;
     }
+
 
     public String getSecondName() {
         return secondName;
@@ -65,6 +83,13 @@ public class Person {
         this.address = address;
     }
 
+    public PersonKey getPersonKey() {
+        return personKey;
+    }
+
+    public void setPersonKey(PersonKey personKey) {
+        this.personKey = personKey;
+    }
 
     public int getId() {
         return id;
@@ -91,6 +116,16 @@ public class Person {
     }
 
 
+    public String getPass() {
+        return pass;
+    }
+
+    public void setPass(String pass) {
+        this.pass = pass;
+    }
+
+
+
     public void setAccountDetails() {
 
         System.out.println("PLease complete some personal data... ");
@@ -110,104 +145,173 @@ public class Person {
     }
 
 
-    public void filterAllProductsByText(String text, ArrayList<Product> listOfProduct) {
-        boolean ok = false;
+    public void filterAllProductsByText(String text) {
 
-        for (Product p : listOfProduct) {
-            if ( p.getName().toLowerCase().contains(text) || p.getName().toUpperCase().contains(text) )  {
-                System.out.println("Name: " + p.getName() + " description: " + p.getDescription() + " price: " + p.getPrice());
-                ok = true;
-            }
-        }
-        if (!ok) {
-            System.out.println("There are no products in the list...");
-        }
-        System.out.println(Constants.MESSAGE_ENTER_TO_CONTINUE_14);
-        Scanner sc = new Scanner(System.in);
-        String x = sc.nextLine();
+        EntityManager em = ConnectionToDb.connectToDb();
+        try {
+            em.getTransaction().begin();
+          TypedQuery<Product> results = em.createQuery(" from Product where name like:name", Product.class);
+          results.setParameter("name","%"+text+"%");
+            if(results.getResultList().size()==0)
+                System.out.println("There are no results...");
 
-    }
+//              for (int i = 0; i < results.getResultList().size(); i++) {
+//                  System.out.println(results.getResultList().get(i));
+//              }
 
-    public void filterOneCategoryProductsByText(String text, Category category, ArrayList<Product> listOfProduct) {
-        boolean ok = false;
-        for (Product p : listOfProduct) {
-            if (p.getCategory().equals(category)) {
-                if ( p.getName().toLowerCase().contains(text) || p.getName().toUpperCase().contains(text) ) {
-                    System.out.println("Name: " + p.getName() + " description: " + p.getDescription() + " price: " + p.getPrice());
-                    ok = true;
+            for(int i = 0 ; i < results.getResultList().size(); i++){
+                if(i==0) {
+                    System.out.println(results.getResultList().get(i).printTableHeader2());
                 }
+                System.out.println(results.getResultList().get(i).printTableElm2());
             }
+
+
+
+            em.getTransaction().commit();
+
         }
 
-        if (!ok) {
-            System.out.println("There are no products in the list...");
+        finally{
+            em.close();
         }
-
-        System.out.println(Constants.MESSAGE_ENTER_TO_CONTINUE_14);
-        Scanner sc = new Scanner(System.in);
-        String x = sc.nextLine();
 
     }
 
-    public void comparingAllProductsByPriceAscending(ArrayList<Product> listOfProduct){
-        Comparator<Product> comparatorByPrice = Comparator.comparing(Product::getPrice);
-          listOfProduct.sort(comparatorByPrice);
-        for (Product p :listOfProduct) {
-            System.out.println(p);
+    public void filterOneCategoryProductsByText(String text, Category category) {
+
+        EntityManager em = ConnectionToDb.connectToDb();
+        try {
+            em.getTransaction().begin();
+        TypedQuery<Product> results = em.createQuery(" from Product where name like:name and category = :category", Product.class);
+        results.setParameter("name","%"+text+"%");
+        results.setParameter("category",category);
+            if(results.getResultList().size()==0)
+                System.out.println("There are no results...");
+//        for (int i=0;i<results.getResultList().size();i++){
+//            System.out.println(results.getResultList().get(i));
+//        }
+
+            for(int i = 0 ; i < results.getResultList().size(); i++){
+                if(i==0) {
+                    System.out.println(results.getResultList().get(i).printTableHeader2());
+                }
+                System.out.println(results.getResultList().get(i).printTableElm2());
+            }
+
+        em.getTransaction().commit();
+    }
+        finally{
+        em.close();
+    }
+
+    }
+
+    public void comparingAllProductsByPriceAscending(){
+
+
+        EntityManager em = ConnectionToDb.connectToDb();
+        try {
+            em.getTransaction().begin();
+            TypedQuery<Product> results = em.createQuery(" from Product order by price asc", Product.class);
+            if(results.getResultList().size()==0)
+                System.out.println("There are no results...");
+//
+//            for (int i=0;i<results.getResultList().size();i++){
+//                System.out.println(results.getResultList().get(i));
+//            }
+
+            for(int i = 0 ; i < results.getResultList().size(); i++){
+                if(i==0) {
+                    System.out.println(results.getResultList().get(i).printTableHeader2());
+                }
+                System.out.println(results.getResultList().get(i).printTableElm2());
+            }
+
+            em.getTransaction().commit();
         }
-        System.out.println(Constants.MESSAGE_ENTER_TO_CONTINUE_14);
-        Scanner sc = new Scanner(System.in);
-        String x = sc.nextLine();
+        finally{
+            em.close();
+        }
 
 
     }
-    public void comparingAllProductsByPriceDescending(ArrayList<Product> listOfProduct){
-        Comparator<Product> comparatorByPrice = Comparator.comparing(Product::getPrice).reversed();
-         listOfProduct.sort(comparatorByPrice);
-        for (Product p :listOfProduct) {
-            System.out.println(p);
-        }
+    public void comparingAllProductsByPriceDescending(){
 
-        System.out.println(Constants.MESSAGE_ENTER_TO_CONTINUE_14);
-        Scanner sc = new Scanner(System.in);
-        String x = sc.nextLine();
+        EntityManager em = ConnectionToDb.connectToDb();
+        try {
+            em.getTransaction().begin();
+            TypedQuery<Product> results = em.createQuery(" from Product order by price desc", Product.class);
+            if(results.getResultList().size()==0)
+                System.out.println("There are no results...");
+//            for (int i=0;i<results.getResultList().size();i++){
+//                System.out.println(results.getResultList().get(i));
+//            }
+
+            for(int i = 0 ; i < results.getResultList().size(); i++){
+                if(i==0) {
+                    System.out.println(results.getResultList().get(i).printTableHeader2());
+                }
+                System.out.println(results.getResultList().get(i).printTableElm2());
+            }
+
+            em.getTransaction().commit();
+        }
+        finally{
+            em.close();
+        }
     }
 
-   public void comparingOneCategoryProductsByPriceAscending(int opt, ArrayList<Product> listOfProduct){
-        ArrayList<Product> newCategoryList = new ArrayList<>();
-        Category x = null ;
-           switch (opt){
-               case 1: x = Category.ANIMALE;
-                       break;
-               case 2: x = Category.VESTIMENTATIE;
-                       break;
-               case 3: x = Category.COSMETICE;
-                      break;
-               case 4: x = Category.ALIMENTE;
-                      break;
-               case 5,6: x = Category.ELECTRONICE;
-                      break;
+   public void comparingOneCategoryProductsByPriceAscending(int opt) {
+
+       Category x = null;
+       switch (opt) {
+           case 1:
+               x = Category.ANIMALE;
+               break;
+           case 2:
+               x = Category.VESTIMENTATIE;
+               break;
+           case 3:
+               x = Category.COSMETICE;
+               break;
+           case 4:
+               x = Category.ALIMENTE;
+               break;
+           case 5, 6:
+               x = Category.ELECTRONICE;
+               break;
        }
 
-       for (Product p: listOfProduct ) {
-           if(p.getCategory().equals(x))
-               newCategoryList.add(p);
-       }
 
-       Comparator<Product> comparatorByPrice = Comparator.comparing(Product::getPrice);
-       newCategoryList.sort(comparatorByPrice);
-       for (Product p: newCategoryList ) {
-           System.out.println(p);
+           EntityManager em = ConnectionToDb.connectToDb();
+           try {
+               em.getTransaction().begin();
+               TypedQuery<Product> results = em.createQuery(" from Product where category = :category order by price asc", Product.class);
+               results.setParameter("category", x);
+               if(results.getResultList().size()==0)
+                   System.out.println("There are no results...");
 
-       }
-       System.out.println(Constants.MESSAGE_ENTER_TO_CONTINUE_14);
-       Scanner sc = new Scanner(System.in);
-       String xy = sc.nextLine();
+//               for (int i = 0; i < results.getResultList().size(); i++) {
+//                   System.out.println(results.getResultList().get(i));
+//               }
+
+               for(int i = 0 ; i < results.getResultList().size(); i++){
+                   if(i==0) {
+                       System.out.println(results.getResultList().get(i).printTableHeader2());
+                   }
+                   System.out.println(results.getResultList().get(i).printTableElm2());
+               }
+
+               em.getTransaction().commit();
+           } finally {
+               em.close();
+           }
 
    }
 
-    public void comparingOneCategoryProductsByPriceDescending( int opt, ArrayList<Product> listOfProduct){
-        ArrayList<Product> newCategoryList = new ArrayList<>();
+    public void comparingOneCategoryProductsByPriceDescending( int opt){
+
         Category x = null ;
         switch (opt){
             case 1: x = Category.ANIMALE;
@@ -222,49 +326,92 @@ public class Person {
                 break;
 
         }
-        for (Product p: listOfProduct ) {
-            if(p.getCategory().equals(x))
-                newCategoryList.add(p);
 
+
+        EntityManager em = ConnectionToDb.connectToDb();
+        try {
+            em.getTransaction().begin();
+            TypedQuery<Product> results = em.createQuery(" from Product where category = :category order by price desc", Product.class);
+            results.setParameter("category", x);
+            if(results.getResultList().size()==0)
+                System.out.println("There are no results...");
+
+//            for (int i = 0; i < results.getResultList().size(); i++) {
+//                System.out.println(results.getResultList().get(i));
+//            }
+
+            for(int i = 0 ; i < results.getResultList().size(); i++){
+                if(i==0) {
+                    System.out.println(results.getResultList().get(i).printTableHeader2());
+                }
+                System.out.println(results.getResultList().get(i).printTableElm2());
+            }
+
+            em.getTransaction().commit();
+        } finally {
+            em.close();
         }
-
-        Comparator<Product> comparatorByPrice = Comparator.comparing(Product::getPrice).reversed();
-        newCategoryList.sort(comparatorByPrice);
-        for (Product p: newCategoryList ) {
-            System.out.println(p);
-
-        }
-        System.out.println(Constants.MESSAGE_ENTER_TO_CONTINUE_14);
-        Scanner sc = new Scanner(System.in);
-        String xy = sc.nextLine();
     }
 
-    public void comparingAllProductsByDiscountPriceAscending(ArrayList<Product> listOfProduct){
-        Comparator<Product> comparatorByPriceWithDiscount = Comparator.comparing(Product::getPriceWithDiscount);
-        listOfProduct.sort(comparatorByPriceWithDiscount);
-        for (Product p :listOfProduct) {
-            System.out.println(p);
+    public void comparingAllProductsByDiscountPriceAscending(){
+
+
+        EntityManager em = ConnectionToDb.connectToDb();
+        try {
+            em.getTransaction().begin();
+            TypedQuery<Product> results = em.createQuery(" from Product order by priceWithDiscount asc", Product.class);
+            if(results.getResultList().size()==0)
+                System.out.println("There are no results...");
+
+//            for (int i = 0; i < results.getResultList().size(); i++) {
+//                System.out.println(results.getResultList().get(i));
+//            }
+
+            for(int i = 0 ; i < results.getResultList().size(); i++){
+                if(i==0) {
+                    System.out.println(results.getResultList().get(i).printTableHeader2());
+                }
+                System.out.println(results.getResultList().get(i).printTableElm2());
+            }
+
+            em.getTransaction().commit();
+        } finally {
+            em.close();
         }
-        System.out.println(Constants.MESSAGE_ENTER_TO_CONTINUE_14);
-        Scanner sc = new Scanner(System.in);
-        String x = sc.nextLine();
 
 
     }
-    public void comparingAllProductsByDiscountPriceDescending(ArrayList<Product> listOfProduct){
-        Comparator<Product> comparatorByPriceWithDiscount = Comparator.comparing(Product::getPriceWithDiscount).reversed();
-        listOfProduct.sort(comparatorByPriceWithDiscount);
-        for (Product p :listOfProduct) {
-            System.out.println(p);
-        }
+    public void comparingAllProductsByDiscountPriceDescending(){
 
-        System.out.println(Constants.MESSAGE_ENTER_TO_CONTINUE_14);
-        Scanner sc = new Scanner(System.in);
-        String x = sc.nextLine();
+
+        EntityManager em = ConnectionToDb.connectToDb();
+        try {
+            em.getTransaction().begin();
+            TypedQuery<Product> results = em.createQuery(" from Product  order by priceWithDiscount desc", Product.class);
+            if(results.getResultList().size()==0)
+                System.out.println("There are no results...");
+
+//            for (int i = 0; i < results.getResultList().size(); i++) {
+//                System.out.println(results.getResultList().get(i));
+//            }
+
+            for(int i = 0 ; i < results.getResultList().size(); i++){
+                if(i==0) {
+                    System.out.println(results.getResultList().get(i).printTableHeader2());
+                }
+                System.out.println(results.getResultList().get(i).printTableElm2());
+            }
+
+
+
+            em.getTransaction().commit();
+        } finally {
+            em.close();
+        }
     }
 
-    public void comparingOneCategoryProductsByDiscountPriceAscending(int opt, ArrayList<Product> listOfProduct){
-        ArrayList<Product> newCategoryList = new ArrayList<>();
+    public void comparingOneCategoryProductsByDiscountPriceAscending(int opt){
+
         Category x = null ;
         switch (opt){
             case 1: x = Category.ANIMALE;
@@ -279,25 +426,36 @@ public class Person {
                 break;
         }
 
-        for (Product p: listOfProduct ) {
-            if(p.getCategory().equals(x))
-                newCategoryList.add(p);
-        }
 
-        Comparator<Product> comparatorByPriceWithDiscount = Comparator.comparing(Product::getPriceWithDiscount);
-        newCategoryList.sort(comparatorByPriceWithDiscount);
-        for (Product p: newCategoryList ) {
-            System.out.println(p);
 
+        EntityManager em = ConnectionToDb.connectToDb();
+        try {
+            em.getTransaction().begin();
+            TypedQuery<Product> results = em.createQuery(" from Product where category = :category order by priceWithDiscount asc", Product.class);
+            results.setParameter("category", x);
+            if(results.getResultList().size()==0)
+                System.out.println("There are no results...");
+
+//            for (int i = 0; i < results.getResultList().size(); i++) {
+//                System.out.println(results.getResultList().get(i));
+//            }
+
+            for(int i = 0 ; i < results.getResultList().size(); i++){
+                if(i==0) {
+                    System.out.println(results.getResultList().get(i).printTableHeader2());
+                }
+                System.out.println(results.getResultList().get(i).printTableElm2());
+            }
+
+            em.getTransaction().commit();
+        } finally {
+            em.close();
         }
-        System.out.println(Constants.MESSAGE_ENTER_TO_CONTINUE_14);
-        Scanner sc = new Scanner(System.in);
-        String xy = sc.nextLine();
 
     }
 
-    public void comparingOneCategoryProductsByDiscountPriceDescending( int opt, ArrayList<Product> listOfProduct){
-        ArrayList<Product> newCategoryList = new ArrayList<>();
+    public void comparingOneCategoryProductsByDiscountPriceDescending( int opt){
+
         Category x = null ;
         switch (opt){
             case 1: x = Category.ANIMALE;
@@ -312,52 +470,94 @@ public class Person {
                 break;
 
         }
-        for (Product p: listOfProduct ) {
-            if(p.getCategory().equals(x))
-                newCategoryList.add(p);
 
+        EntityManager em = ConnectionToDb.connectToDb();
+        try {
+            em.getTransaction().begin();
+            TypedQuery<Product> results = em.createQuery(" from Product where category = :category order by priceWithDiscount desc", Product.class);
+            results.setParameter("category", x);
+            if(results.getResultList().size()==0)
+                System.out.println("There are no results...");
+
+//            for (int i = 0; i < results.getResultList().size(); i++) {
+//                System.out.println(results.getResultList().get(i));
+//            }
+
+            for(int i = 0 ; i < results.getResultList().size(); i++){
+                if(i==0) {
+                    System.out.println(results.getResultList().get(i).printTableHeader2());
+                }
+                System.out.println(results.getResultList().get(i).printTableElm2());
+            }
+
+            em.getTransaction().commit();
+        } finally {
+            em.close();
         }
-
-        Comparator<Product> comparatorByPriceWithDiscount = Comparator.comparing(Product::getPriceWithDiscount).reversed();
-        newCategoryList.sort(comparatorByPriceWithDiscount);
-        for (Product p: newCategoryList ) {
-            System.out.println(p);
-
-        }
-        System.out.println(Constants.MESSAGE_ENTER_TO_CONTINUE_14);
-        Scanner sc = new Scanner(System.in);
-        String xy = sc.nextLine();
     }
 
 
 
-    public void comparingAllProductsByPopularityAscending(ArrayList<Product> listOfProduct){
+    public void comparingAllProductsByPopularityAscending(){
 
-        Comparator<Product> comparatorByPopularity = Comparator.comparing(Product::getCountPopularity);
-        listOfProduct.sort(comparatorByPopularity);
-        for (Product p :listOfProduct) {
-            System.out.println(p);
+
+        EntityManager em = ConnectionToDb.connectToDb();
+        try {
+            em.getTransaction().begin();
+            TypedQuery<Product> results = em.createQuery(" from Product order by countPopularity asc", Product.class);
+            if(results.getResultList().size()==0)
+                System.out.println("There are no results...");
+
+//            for (int i=0;i<results.getResultList().size();i++){
+//                System.out.println(results.getResultList().get(i));
+//            }
+
+            for(int i = 0 ; i < results.getResultList().size(); i++){
+                if(i==0) {
+                    System.out.println(results.getResultList().get(i).printTableHeader2());
+                }
+                System.out.println(results.getResultList().get(i).printTableElm2());
+            }
+
+
+
+            em.getTransaction().commit();
         }
-        System.out.println(Constants.MESSAGE_ENTER_TO_CONTINUE_14);
-        Scanner sc = new Scanner(System.in);
-        String x = sc.nextLine();
+        finally{
+            em.close();
+        }
     }
 
-    public void comparingAllProductsByPopularityDescending(ArrayList<Product> listOfProduct){
+    public void comparingAllProductsByPopularityDescending(){
 
-        Comparator<Product> comparatorByPrice = Comparator.comparing(Product::getCountPopularity).reversed();
-        listOfProduct.sort(comparatorByPrice);
-        for (Product p :listOfProduct) {
-            System.out.println(p);
+
+        EntityManager em = ConnectionToDb.connectToDb();
+        try {
+            em.getTransaction().begin();
+            TypedQuery<Product> results = em.createQuery(" from Product order by countPopularity desc", Product.class);
+            if(results.getResultList().size()==0)
+                System.out.println("There are no results...");
+
+//            for (int i=0;i<results.getResultList().size();i++){
+//                System.out.println(results.getResultList().get(i));
+//            }
+
+            for(int i = 0 ; i < results.getResultList().size(); i++){
+                if(i==0) {
+                    System.out.println(results.getResultList().get(i).printTableHeader2());
+                }
+                System.out.println(results.getResultList().get(i).printTableElm2());
+            }
+
+            em.getTransaction().commit();
         }
-
-        System.out.println(Constants.MESSAGE_ENTER_TO_CONTINUE_14);
-        Scanner sc = new Scanner(System.in);
-        String x = sc.nextLine();
+        finally{
+            em.close();
+        }
     }
 
-    public void comparingOneCategoryProductsByPopularityAscending(int opt, ArrayList<Product> listOfProduct){
-        ArrayList<Product> newCategoryList = new ArrayList<>();
+    public void comparingOneCategoryProductsByPopularityAscending(int opt){
+
         Category x = null ;
         switch (opt){
             case 1: x = Category.ANIMALE;
@@ -371,24 +571,35 @@ public class Person {
             case 5,6: x = Category.ELECTRONICE;
                 break;
         }
-        for (Product p: listOfProduct ) {
-            if(p.getCategory().equals(x))
-                newCategoryList.add(p);
-        }
 
-        Comparator<Product> comparatorByPopularity = Comparator.comparing(Product::getCountPopularity);
-        newCategoryList.sort(comparatorByPopularity);
-        for (Product p: newCategoryList ) {
-            System.out.println(p);
-        }
 
-        System.out.println(Constants.MESSAGE_ENTER_TO_CONTINUE_14);
-        Scanner sc = new Scanner(System.in);
-        String xy = sc.nextLine();
+        EntityManager em = ConnectionToDb.connectToDb();
+        try {
+            em.getTransaction().begin();
+            TypedQuery<Product> results = em.createQuery(" from Product where category = :category order by countPopularity asc", Product.class);
+            results.setParameter("category", x);
+            if(results.getResultList().size()==0)
+                System.out.println("There are no results...");
+
+//            for (int i = 0; i < results.getResultList().size(); i++) {
+//                System.out.println(results.getResultList().get(i));
+//            }
+
+            for(int i = 0 ; i < results.getResultList().size(); i++){
+                if(i==0) {
+                    System.out.println(results.getResultList().get(i).printTableHeader2());
+                }
+                System.out.println(results.getResultList().get(i).printTableElm2());
+            }
+
+            em.getTransaction().commit();
+        } finally {
+            em.close();
+        }
     }
 
-    public void comparingOneCategoryProductsByPopularityDescending( int opt, ArrayList<Product> listOfProduct){
-        ArrayList<Product> newCategoryList = new ArrayList<>();
+    public void comparingOneCategoryProductsByPopularityDescending( int opt){
+
         Category x = null ;
         switch (opt){
             case 1: x = Category.ANIMALE;
@@ -402,50 +613,92 @@ public class Person {
             case 5,6: x = Category.ELECTRONICE;
                 break;
         }
-        for (Product p: listOfProduct ) {
-            if(p.getCategory().equals(x))
-                newCategoryList.add(p);
-        }
 
-        Comparator<Product> comparatorByPopularity = Comparator.comparing(Product::getCountPopularity).reversed();
-        newCategoryList.sort(comparatorByPopularity);
-        for (Product p: newCategoryList ) {
-            System.out.println(p);
 
+        EntityManager em = ConnectionToDb.connectToDb();
+        try {
+            em.getTransaction().begin();
+            TypedQuery<Product> results = em.createQuery(" from Product where category = :category order by countPopularity desc", Product.class);
+            results.setParameter("category", x);
+            if(results.getResultList().size()==0)
+                System.out.println("There are no results...");
+
+//            for (int i = 0; i < results.getResultList().size(); i++) {
+//                System.out.println(results.getResultList().get(i));
+//            }
+
+            for(int i = 0 ; i < results.getResultList().size(); i++){
+                if(i==0) {
+                    System.out.println(results.getResultList().get(i).printTableHeader2());
+                }
+                System.out.println(results.getResultList().get(i).printTableElm2());
+            }
+
+            em.getTransaction().commit();
+        } finally {
+            em.close();
         }
-        System.out.println(Constants.MESSAGE_ENTER_TO_CONTINUE_14);
-        Scanner sc = new Scanner(System.in);
-        String xy = sc.nextLine();
     }
 
-    public void comparingAllProductsByNameAscending(ArrayList<Product> listOfProduct){
+    public void comparingAllProductsByNameAscending(){
 
-        Comparator<Product> comparatorByName = Comparator.comparing(Product::getName);
-        listOfProduct.sort(comparatorByName);
-        for (Product p :listOfProduct) {
-            System.out.println(p);
+
+
+        EntityManager em = ConnectionToDb.connectToDb();
+        try {
+            em.getTransaction().begin();
+            TypedQuery<Product> results = em.createQuery(" from Product order by name asc", Product.class);
+            if(results.getResultList().size()==0)
+                System.out.println("There are no results...");
+
+//            for (int i=0;i<results.getResultList().size();i++){
+//                System.out.println(results.getResultList().get(i));
+//            }
+
+            for(int i = 0 ; i < results.getResultList().size(); i++){
+                if(i==0) {
+                    System.out.println(results.getResultList().get(i).printTableHeader2());
+                }
+                System.out.println(results.getResultList().get(i).printTableElm2());
+            }
+
+            em.getTransaction().commit();
         }
-
-        System.out.println(Constants.MESSAGE_ENTER_TO_CONTINUE_14);
-        Scanner sc = new Scanner(System.in);
-        String x = sc.nextLine();
+        finally{
+            em.close();
+        }
     }
 
-    public void comparingAllProductsByNameDescending(ArrayList<Product> listOfProduct){
+    public void comparingAllProductsByNameDescending(){
 
-        Comparator<Product> comparatorByName = Comparator.comparing(Product::getName).reversed();
-        listOfProduct.sort(comparatorByName);
-        for (Product p :listOfProduct) {
-            System.out.println(p);
+
+        EntityManager em = ConnectionToDb.connectToDb();
+        try {
+            em.getTransaction().begin();
+            TypedQuery<Product> results = em.createQuery(" from Product order by name desc", Product.class);
+            if(results.getResultList().size()==0)
+                System.out.println("There are no results...");
+
+//            for (int i=0;i<results.getResultList().size();i++){
+//                System.out.println(results.getResultList().get(i));
+//            }
+
+            for(int i = 0 ; i < results.getResultList().size(); i++){
+                if(i==0) {
+                    System.out.println(results.getResultList().get(i).printTableHeader2());
+                }
+                System.out.println(results.getResultList().get(i).printTableElm2());
+            }
+
+            em.getTransaction().commit();
         }
-
-        System.out.println(Constants.MESSAGE_ENTER_TO_CONTINUE_14);
-        Scanner sc = new Scanner(System.in);
-        String x = sc.nextLine();
+        finally{
+            em.close();
+        }
     }
 
-    public void comparingOneCategoryProductsByNameAscending(int opt, ArrayList<Product> listOfProduct){
-        ArrayList<Product> newCategoryList = new ArrayList<>();
+    public void comparingOneCategoryProductsByNameAscending(int opt){
+
         Category x = null ;
         switch (opt){
             case 1: x = Category.ANIMALE;
@@ -459,24 +712,36 @@ public class Person {
             case 5,6: x = Category.ELECTRONICE;
                 break;
         }
-        for (Product p: listOfProduct ) {
-            if(p.getCategory().equals(x))
-                newCategoryList.add(p);
-        }
 
-        Comparator<Product> comparatorByPopularity = Comparator.comparing(Product::getName);
-        newCategoryList.sort(comparatorByPopularity);
-        for (Product p: newCategoryList ) {
-            System.out.println(p);
-        }
 
-        System.out.println(Constants.MESSAGE_ENTER_TO_CONTINUE_14);
-        Scanner sc = new Scanner(System.in);
-        String xy = sc.nextLine();
+        EntityManager em = ConnectionToDb.connectToDb();
+        try {
+            em.getTransaction().begin();
+            TypedQuery<Product> results = em.createQuery(" from Product where category= :category order by name asc", Product.class);
+            results.setParameter("category",x);
+            if(results.getResultList().size()==0)
+                System.out.println("There are no results...");
+
+//            for (int i=0;i<results.getResultList().size();i++){
+//                System.out.println(results.getResultList().get(i));
+//            }
+
+            for(int i = 0 ; i < results.getResultList().size(); i++){
+                if(i==0) {
+                    System.out.println(results.getResultList().get(i).printTableHeader2());
+                }
+                System.out.println(results.getResultList().get(i).printTableElm2());
+            }
+
+            em.getTransaction().commit();
+        }
+        finally{
+            em.close();
+        }
     }
 
-    public void comparingOneCategoryProductsByNameDescending( int opt, ArrayList<Product> listOfProduct){
-        ArrayList<Product> newCategoryList = new ArrayList<>();
+    public void comparingOneCategoryProductsByNameDescending( int opt){
+
         Category x = null ;
         switch (opt){
             case 1: x = Category.ANIMALE;
@@ -490,21 +755,117 @@ public class Person {
             case 5,6: x = Category.ELECTRONICE;
                 break;
         }
-        for (Product p: listOfProduct ) {
-            if(p.getCategory().equals(x))
-                newCategoryList.add(p);
+
+
+        EntityManager em = ConnectionToDb.connectToDb();
+        try {
+            em.getTransaction().begin();
+            TypedQuery<Product> results = em.createQuery(" from Product where category= :category order by name desc", Product.class);
+            results.setParameter("category",x);
+            if(results.getResultList().size()==0)
+                System.out.println("There are no results...");
+
+//            for (int i=0;i<results.getResultList().size();i++){
+//                System.out.println(results.getResultList().get(i));
+//            }
+
+            for(int i = 0 ; i < results.getResultList().size(); i++){
+                if(i==0) {
+                    System.out.println(results.getResultList().get(i).printTableHeader2());
+                }
+                System.out.println(results.getResultList().get(i).printTableElm2());
+            }
+
+            em.getTransaction().commit();
+        }
+        finally{
+            em.close();
         }
 
-        Comparator<Product> comparatorByName = Comparator.comparing(Product::getName).reversed();
-        newCategoryList.sort(comparatorByName);
-        for (Product p: newCategoryList ) {
-            System.out.println(p);
+    }
+
+    @Transient
+    HashMap<String, Integer> tableColDimHM= new HashMap<>(Map.of("idLen", 8,"firstnameLen",
+            25,"secondnameLen", 25,"dateOfBirthLen", 25,"addressLen", 25,"usernameLen",
+            25));
+
+    public String printTableRow(String text, int colLen) {
+
+        StringBuilder strBuilder = new StringBuilder();
+        int insertSpaces = colLen - (2 + text.length() + 1);
+
+        strBuilder.append("| ");
+
+        strBuilder.append(text);
+
+        for(int i = 0; i<insertSpaces; i++) {
+            strBuilder.append(" ");
+        }
+        strBuilder.append("|");
+
+        return strBuilder.toString();
+    }
+
+    public String printTableHeader2(){
+
+        StringBuilder strBuilder = new StringBuilder();
+
+
+        int sumColDim = 0;
+
+        // Sum all values in tableColDim
+        for(int val : tableColDimHM.values()){
+            sumColDim += val;
         }
 
-        System.out.println(Constants.MESSAGE_ENTER_TO_CONTINUE_14);
-        Scanner sc = new Scanner(System.in);
-        String xy = sc.nextLine();
+        for(int i = 0; i<sumColDim; i++) {
+            strBuilder.append("-");
+        }
 
+        strBuilder.append("\n"); // <- tell the string builder that we want a new line
+
+        strBuilder.append(printTableRow("ID",            tableColDimHM.get("idLen")));
+        strBuilder.append(printTableRow("firstname",     tableColDimHM.get("firstnameLen")));
+        strBuilder.append(printTableRow("secondname",    tableColDimHM.get("secondnameLen")));
+        strBuilder.append(printTableRow("date of birth", tableColDimHM.get("dateOfBirthLen")));
+        strBuilder.append(printTableRow("address",       tableColDimHM.get("addressLen")));
+        strBuilder.append(printTableRow("username",      tableColDimHM.get("usernameLen")));
+
+
+        return strBuilder.toString();
+    }
+
+    public String printTableElm2(){
+
+        try {
+            StringBuilder strBuilder = new StringBuilder();
+            int sumColDim = 0;
+
+            // Sum all values in tableColDim
+            for (int val : tableColDimHM.values()) {
+                sumColDim += val;
+            }
+
+            for (int i = 0; i < sumColDim; i++) {
+                strBuilder.append("-");
+            }
+
+            strBuilder.append("\n"); // <- tell the string builder that we want a new line
+
+            strBuilder.append(printTableRow(String.valueOf(id).toString(), tableColDimHM.get("idLen")));
+            strBuilder.append(printTableRow(firstName, tableColDimHM.get("firstnameLen")));
+            strBuilder.append(printTableRow(secondName, tableColDimHM.get("secondnameLen")));
+            strBuilder.append(printTableRow(dateOfBirth, tableColDimHM.get("dateOfBirthLen")));
+            strBuilder.append(printTableRow(address, tableColDimHM.get("addressLen")));
+            strBuilder.append(printTableRow(username, tableColDimHM.get("usernameLen")));
+
+
+            return strBuilder.toString();
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+
+        return "ERROR!!!";
     }
 
     @Override

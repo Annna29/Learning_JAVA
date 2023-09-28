@@ -1,7 +1,10 @@
 package onlineShop;
-import db.DB_Keys;
-import db.DB_PRODUCTS;
-import db.DB_Persons;
+
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.Query;
+import keys.PersonKey;
 import persons.Admin;
 import persons.Person;
 import persons.User;
@@ -14,31 +17,21 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.io.Console;
 import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
+import java.security.*;
+import java.security.spec.EncodedKeySpec;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class OnlineShop {
-    // Temp. DataBase handles
-    // TODO: They will be replaced with adapters which will
-    //       interact with the DB.
-    DB_Keys db_k;
-    DB_Persons db_p;
-    DB_PRODUCTS db_prod;
 
     Person currentPerson = new Person();
 
     // Constructor
     public OnlineShop() throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, IOException, InvalidKeySpecException, BadPaddingException, InvalidKeyException {
-        // Create DB objects
-        db_k    = new DB_Keys();
-        db_p    = new DB_Persons();
-        db_prod = new DB_PRODUCTS();
 
         //admin
         manualAddAdmin("Mart","1234@");
@@ -48,14 +41,32 @@ public class OnlineShop {
         addProducts();
     }
 
+
     // Manually Add User Function
     public void manualAddUser(String username, String pass) throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, IOException, InvalidKeySpecException, BadPaddingException, InvalidKeyException {
-        byte[] encryptedPass;
+       byte[] encryptedPass;
 
         KeyPair pair = RSA.genRSAKeys();
-        db_k.addKeys(username, pair);
-        encryptedPass = RSA.applyRSAEncryptingData(pass, db_k.getPublicKeyForUser(username));
-        db_p.addPersons(new User(username, encryptedPass));
+        String stringValOfPrivateKey = Base64.getEncoder().encodeToString(pair.getPrivate().getEncoded());
+        String stringValOfPublicKey = Base64.getEncoder().encodeToString(pair.getPublic().getEncoded());
+
+        encryptedPass = RSA.applyRSAEncryptingData(pass,pair.getPublic());
+
+
+        EntityManager em = ConnectionToDb.connectToDb();
+
+        try {
+            em.getTransaction().begin();
+//
+//         User user = new User(username,Base64.getEncoder().encodeToString(encryptedPass),new PersonKey(stringValOfPrivateKey,stringValOfPublicKey));
+//           em.persist(user);
+
+
+           em.getTransaction().commit();
+        }
+        finally{
+            em.close();
+        }
     }
 
     // Manually Add Admin Function
@@ -63,26 +74,105 @@ public class OnlineShop {
         byte[] encryptedPass;
 
         KeyPair pair = RSA.genRSAKeys();
-        db_k.addKeys(username, pair);
-        encryptedPass = RSA.applyRSAEncryptingData(pass, db_k.getPublicKeyForUser(username));
-        db_p.addPersons(new Admin(username, encryptedPass));
+
+        encryptedPass = RSA.applyRSAEncryptingData(pass, pair.getPublic());
+
+        EntityManager em = ConnectionToDb.connectToDb();
+        String stringValOfPrivateKey = Base64.getEncoder().encodeToString(pair.getPrivate().getEncoded());
+        String stringValOfPublicKey = Base64.getEncoder().encodeToString(pair.getPublic().getEncoded());
+
+        try {
+            em.getTransaction().begin();
+
+//      Admin admin = new Admin(username, Base64.getEncoder().encodeToString(encryptedPass),new PersonKey(stringValOfPrivateKey,stringValOfPublicKey));
+//          em.persist(admin);
+
+           Admin foundAdmin= em.find(Admin.class,1);
+           foundAdmin.setAddress("Bucuresti");
+           foundAdmin.setFirstName("Mart");
+           foundAdmin.setSecondName("Mart");
+           foundAdmin.setDateOfBirth("02.05.2000");
+            System.out.println(foundAdmin);
+            em.merge(foundAdmin);
+            em.getTransaction().commit();
+        }
+        finally{
+            em.close();
+        }
+
     }
 
     public void addProducts(){
 
-        db_prod.getListOfProduct().add(new Product(Category.ELECTRONICE,1,"Dell","Powerfull laptop",3500,5,1));
-        db_prod.getListOfProduct().add(new Laptop(Category.ELECTRONICE,2,"Dell2","Powerfull for gaming",4800,0,5));
-        db_prod.getListOfProduct().add(new Laptop(Category.ELECTRONICE,3,"Dell3","Powerfull for gaming",4800,7,11));
-        db_prod.getListOfProduct().add(new Laptop(Category.ELECTRONICE,4,"Dell4","Powerfull for gaming",4800,0,12));
-        db_prod.getListOfProduct().add(new Laptop(Category.ELECTRONICE,5,"Dell5","Powerfull for gaming",4800,0,1));
-        db_prod.getListOfProduct().add(new Laptop(Category.ELECTRONICE,6,"Dell6","Powerfull for gaming",4800,78,0));
-        db_prod.getListOfProduct().add(new Laptop(Category.ELECTRONICE,7,"Lenovo","Powerfull for gaming",4800,0,4));
-        db_prod.getListOfProduct().add(new Product(Category.ALIMENTE,8,"Lapte","delicious",35,0,5));
-        db_prod.getListOfProduct().add(new Product(Category.ALIMENTE,9,"Cafea"," tasty almond",50,0,1));
-        db_prod.getListOfProduct().add(new Product(Category.ELECTRONICE,10,"Laptop ASUS","Powerfull laptop",3500,0,0));
-        db_prod.getListOfProduct().add(new Product(Category.ALIMENTE,11,"Dellicious Almond Chocolate"," tasty almond",50,0,0));
+        EntityManager em = ConnectionToDb.connectToDb();
+        try {
 
+            em.getTransaction().begin();
+   /*
+            Product prd = new Laptop(Category.ELECTRONICE,"Laptop Dell Precision 5680", "Best of 2023",8900,0,0,"Gaming","Windows");
+            em.persist(prd);
+            Product prd2 = new Laptop(Category.ELECTRONICE,"Laptop Dell Precision  3581", "Powerfull for gaming",12900,0,0,"Gaming","LINUX");
+            em.persist(prd2);
+            Product prd3 = new Laptop(Category.ELECTRONICE,"Laptop Dell XPS 9530", "eXtreme Performance System - slim design",9900,0,0,"Business","LINUX");
+            em.persist(prd3);
+            Product prd4 = new Laptop(Category.ELECTRONICE,"Laptop Dell XPS 13", "eXtreme Performance System - long batery life ",7900,0,0,"Business","Windows");
+            em.persist(prd4);
+            Product prd5 = new Laptop(Category.ELECTRONICE,"Laptop Dell Ultrabook XPS", "Slim & Business laptop",10000,1,0,"Business","LINUX");
+            em.persist(prd5);
+            Product prd6 = new Laptop(Category.ELECTRONICE,"Laptop DELL Inspiron 3520", "Gaming laptop- best price",3500,5,0,"Business","LINUX");
+            em.persist(prd6);
+            Product prd7 = new Laptop(Category.ELECTRONICE,"Laptop LENOVO IdeaPad 3", "Lenovo Eye Care & Smart Wireless",3300,0,0,"Business","Windows");
+            em.persist(prd7);
+            Product prd8 = new Laptop(Category.ELECTRONICE,"Laptop LENOVO Legion 5", "max performance for gamers",7700,0,0,"Gaming","Windows");
+            em.persist(prd8);
+            Product prd9 = new Laptop(Category.ELECTRONICE,"Laptop Gaming Lenovo Legion Slim 7", "Smart Engine & Lenovo LA2-Q si LA1 AI Chips",6700,0,0,"Gaming","LINUX");
+            em.persist(prd9);
+            Product prd10 = new Laptop(Category.ELECTRONICE,"Laptop Lenovo V15", "AMD Ryzen 5/ 6 nuclee",2500,6,0,"Gaming","Windows");
+            em.persist(prd10);
+            Product prd11 = new AnimalFood(Category.ANIMALE,"Purina PRO PLAN", "Best choice for sensitive skin",335,1,0,"SALMON");
+            em.persist(prd11);
+            Product prd12 = new AnimalFood(Category.ANIMALE,"Purina PRO PLAN puppy", "ideal food for puppies (0-50 kg)",355,1,0,"BEEF");
+            em.persist(prd12);
+            Product prd13 = new AnimalFood(Category.ANIMALE,"Purina PRO PLAN puppy-big pack", "ideal food for all ages",566,1,0,"LAMB");
+            em.persist(prd13);
+            Product prd14 = new AnimalFood(Category.ANIMALE,"ROYAL CANIN", "only natural ingredients",420,0,0,"SALMON");
+            em.persist(prd14);
+            Product prd15 = new AnimalFood(Category.ANIMALE,"PEDIGREE", "tasty snacks for your dog",120,0,0,"BEEF");
+            em.persist(prd15);
+            Product prd16 = new FoodAndDrinks(Category.ALIMENTE, "Jacobs", "Coffee for a greater morning", 55,0,0,"intense");
+            em.persist(prd16);
+            Product prd17 = new FoodAndDrinks(Category.ALIMENTE, "LAVAZZA", "Best coffee aroma", 75,0,0,"intense");
+            em.persist(prd17);
+            Product prd18 = new FoodAndDrinks(Category.ALIMENTE, "Tchibo caffisimo", "Capsule cremoase- aroma migdale", 70,0,0,"almond");
+            em.persist(prd18);
+            Product prd19 = new FoodAndDrinks(Category.ALIMENTE, "Haribo", "Bomboane si jeleuri fructate ", 50,0,0,"Tropical");
+            em.persist(prd19);
+            Product prd20 = new MobilePhone(Category.ELECTRONICE, "Samsung Galaxy A53", "Tehnologie 5G ", 1950,0,0,"Android");
+            em.persist(prd20);
+            Product prd21 = new MobilePhone(Category.ELECTRONICE, "Samsung Galaxy S21", "Best Samsung technology ", 3950,0,0,"Android");
+            em.persist(prd21);
+            Product prd22 = new MobilePhone(Category.ELECTRONICE, "Samsung Galaxy S22", "Smart charging technology  ", 4950,0,0,"Android");
+            em.persist(prd22);
+            Product prd23 = new Dermatocosmetics(Category.COSMETICE, "Kalvin Klein- Euphoria","Strong perfume -black orchid fragrance",350,0,0,"Floral");
+            em.persist(prd23);
+            Product prd24 = new Dermatocosmetics(Category.COSMETICE, "Giorgio Armani- Aqua di gioia","Aquatic perfume",350,0,0,"Fresh");
+            em.persist(prd24);
+            Product prd25 = new Dermatocosmetics(Category.COSMETICE, "Ange ou Demon- Givenchy","Sweet mandarin perfume",360,0,0,"Floral");
+            em.persist(prd25);
+            Product prd26 = new Clothes(Category.VESTIMENTATIE,"Geaca Ski- Columbia","Omni heat technology",1500,0,0,"black");
+            em.persist(prd26);
+            Product prd27 = new Clothes(Category.VESTIMENTATIE,"Geaca- The Northface","Waterproof, breathable technology",1800,0,0,"black");
+            em.persist(prd27);
+            Product prd28 = new Clothes(Category.VESTIMENTATIE,"Geaca- Colmar","The best choice for ski and snowboard",3800,0,0,"blue");
+            em.persist(prd28);
 
+    */
+
+            em.getTransaction().commit();
+        }
+        finally{
+            em.close();
+        }
     }
 
     //
@@ -123,11 +213,12 @@ public class OnlineShop {
     }
 
 
-
     public void userSignUp () throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, IOException, InvalidKeySpecException, BadPaddingException, InvalidKeyException {
         User newUser = new User();
         String newPersonPass;
+        String tmpScannerStr;
 
+        boolean retry = false;
         boolean isUsernameValid;
         boolean isUsernameInDB = false;
         char[] pass;
@@ -137,87 +228,104 @@ public class OnlineShop {
         System.out.println("-- SIGN UP MENU --");
 
         do{
-            System.out.println("Enter username: ");
-            newUser.setUsername(scanner.nextLine());
+
+            if(!retry) { System.out.println("Enter username: "); }
+
+            tmpScannerStr = scanner.nextLine();
+            if(tmpScannerStr.equals("9") && retry) { return; }; // Exit signUp if no.9 is typed in.
+
+            newUser.setUsername(tmpScannerStr);
 
             isUsernameValid = Validation.validateDetails(newUser.getUsername(), Constants.USERNAME_PASSWORD_LENGTH);
 
             if(!isUsernameValid) {
                 System.out.println("Username and password must be at least 4 characters !");
                 System.out.println(Constants.MESSAGE_CANCEL_ACTION_3);
-
-                try {
-                    int ans = scanner.nextInt();
-                    if(ans==9)
-                        return;
-                }
-                catch (InputMismatchException e){
-                    System.out.println(Constants.MESSAGE_ERROR_NUMBER_2);
-                    scanner.nextLine();
-                    return;
-                }
-
+                retry = true;
             } else {
-                isUsernameInDB = db_p.getMapPersons().containsKey(newUser.getUsername());
+                EntityManager em = ConnectionToDb.connectToDb();
+                try {
+                    em.getTransaction().begin();
+
+                    String myQ = String.format("SELECT * FROM person WHERE username='%s'", newUser.getUsername());
+                    Query q = em.createNativeQuery(myQ, Person.class);
+
+                    // If SQL query returns something it means that the user is in the DB.
+                    isUsernameInDB = (q.getResultList().size() > 0) ? true : false;
+
+                    //em.getTransaction().commit(); // TODO: not needed since this OP is Read-Only
+                }
+                finally{
+                    em.close();
+                }
+
                 if(isUsernameInDB) {
                     System.out.println("This username is already used...Please try another one ! ");
                     System.out.println(Constants.MESSAGE_CANCEL_ACTION_3);
-                    try {
-                        int ans = scanner.nextInt();
-                        if (ans == 9)
-                            return;
-                    }catch (InputMismatchException e){
-                        System.out.println(Constants.MESSAGE_ERROR_NUMBER_2);
-                        scanner.nextLine();
-                        return;
-                    }
+                    retry = true;
                 }
             }
         } while (isUsernameInDB || !isUsernameValid);
 
         boolean isPasswordValid;
+        retry = false; // Reinitialize in case it was set in the username validation.
 
         do {
-//            System.out.println("Enter password: ");
-//            newPerson.setPassword(scanner.nextLine());
-
             Console console = System.console();
-            pass = console.readPassword("Enter password: ");
-            //newPerson.setPassword( String.copyValueOf(pass));
+
+            if(retry) {
+                System.out.println(Constants.MESSAGE_CANCEL_ACTION_3);
+                pass = console.readPassword();
+            } else {
+                pass = console.readPassword("Enter password: ");
+            }
+
             newPersonPass = String.copyValueOf(pass);
 
+            // If password contains only one no. (that being 9) in
+            // the retry step, EXIT to Main-Menu
+            if(newPersonPass.equals("9") && retry) { return; };
+
             isPasswordValid = Validation.validatePassword(newPersonPass, Constants.USERNAME_PASSWORD_LENGTH);
+
             if(!isPasswordValid){
                 System.out.println("Password must contains a special character: $,%,@,#. \nPassword and username must be at least 4 characters ");
-                System.out.println(Constants.MESSAGE_CANCEL_ACTION_3);
-                try {
-                    int ans = scanner.nextInt();
-                    if (ans == 9)
-                        return;
-                }
-                catch(InputMismatchException e){
-                    System.out.println(Constants.MESSAGE_ERROR_NUMBER_2);
-                    return;
-                }
+                retry = true;
             }
         } while(!isPasswordValid);
 
         // -- Logic to Encrypt Password -- //
 
-        // Gen Keys and push them into the Key Database.
-        db_k.addKeys(newUser.getUsername(), RSA.genRSAKeys());
+        // Gen Keys and push them into the PersonKey Database.
+        KeyPair keyPair = RSA.genRSAKeys();
 
-        byte[] RSAPassword = RSA.applyRSAEncryptingData(newPersonPass, db_k.getPublicKeyForUser(newUser.getUsername()));
-       // System.out.println(Base64.getEncoder().encodeToString(RSAPassword));
-        newUser.setPassword(RSAPassword);
+        String stringValOfPrivateKey = Base64.getEncoder().encodeToString(keyPair.getPrivate().getEncoded());
+        String stringValOfPublicKey  = Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded());
+
+        newUser.setPersonKey(new PersonKey(stringValOfPrivateKey,stringValOfPublicKey));
+
+        byte[] RSAPassword = RSA.applyRSAEncryptingData(newPersonPass, keyPair.getPublic());
+        // System.out.println(Base64.getEncoder().encodeToString(RSAPassword));
+        newUser.setPassword((RSAPassword)); // TODO: Can be removed. Password is stored as String (encoded)
+        newUser.setPass(Base64.getEncoder().encodeToString(RSAPassword));
 
         //
         System.out.println("You have successfully SignedUp!! :D ");
         newUser.setAccountDetails();
-        db_p.addPersons(newUser);
+
+        EntityManager em = ConnectionToDb.connectToDb();
+
+        try {
+            em.getTransaction().begin();
+            em.persist(newUser);
+            em.getTransaction().commit();
+        }
+        finally{
+            em.close();
+        }
+
         System.out.println("Well done! :)");
         System.out.println("Now let's go shopping!! :D ");
-
     }
 
     public Person logIn () throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException, IOException, BadPaddingException, InvalidKeyException {
@@ -227,6 +335,9 @@ public class OnlineShop {
         Scanner scanner = new Scanner(System.in);
         boolean ok = false;
         char[] pass;
+
+        Query q;
+        Person p;
 
         System.out.println("Please LOG IN : ");
         System.out.println("Enter username : ");
@@ -241,39 +352,48 @@ public class OnlineShop {
         password = String.copyValueOf(pass);
 //         <--
 
-        if(db_p.getMapPersons().containsKey(username)) {
-            // Fetch keys in order to decrypt the pass.
-            PrivateKey privateKey = db_k.getPrivateKeyForUser(username);
-            decryptedPass = RSA.applyRSADecryptingData(db_p.getMapPersons().get(username).getPassword(), privateKey);
-         //   System.out.println("Decrypted Pass: " + decryptedPass);
-            if(decryptedPass.equals(password)){
+        boolean isPresent = false;
+
+        ArrayList<Person>listOfAllPersons = new ArrayList<>();
+
+        EntityManager em = ConnectionToDb.connectToDb();
+        try {
+            em.getTransaction().begin();
+
+            String myQ = String.format("SELECT * FROM Person WHERE username='%s'", username);
+            q = em.createNativeQuery(myQ, Person.class);
+            try {
+                p = (Person) q.getSingleResult();
+            } catch (NoResultException noResultException){
+                System.out.println("User not registered!");
+                return null;
+            }
+
+            // TODO: Check if case sensitive match is made between DB & Typed In Username
+
+            byte[] decodedPrivateKey = Base64.getDecoder().decode(p.getPersonKey().getPrivateKeyVal());
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+
+            EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(decodedPrivateKey);
+            PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);
+
+            byte[] myPassToDecode = Base64.getDecoder().decode(p.getPass());
+            decryptedPass = RSA.applyRSADecryptingData(myPassToDecode, privateKey);
+
+            if (decryptedPass.equals(password)) {
                 System.out.println("You have successfully log in ! ");
-                return db_p.getMapPersons().get(username);
+                return p;
             } else {
                 System.out.println("Wrong password!");
             }
-        } else {
-            System.out.println("User not registered!");
+
+            em.getTransaction().commit();
+        }
+        finally{
+            em.close();
         }
 
         return null;
-
-//        for (Map.Entry<String, Person> el : db_p.getMapPersons().entrySet()) {
-//            if ((username.equals(el.getKey())) && (password.equals(RSA.applyRSADecryptingData(el.getValue().getPassword())))) {
-//                ok = true;
-//            }
-//            if (ok) {
-//                System.out.println("You have successfully log in ! ");
-//                return el.getValue();
-//            }
-//
-//        }
-//
-//        if(!ok) {
-//            System.out.println("Something is wrong...please retry ! ");
-//
-//        }
-//        return null;
     }
 
     public User runAsUser(User user){
@@ -292,27 +412,31 @@ public class OnlineShop {
 
             switch (option) {
                 case 1:
-                    OnlineShopMenu.printFilterProductsByTextMenu();
-                    submenuOpt = OnlineShopMenu.readMenuOption();
-                    filterProductsByText(user, submenuOpt);
+//                    OnlineShopMenu.printFilterProductsByTextMenu();
+//                    submenuOpt = OnlineShopMenu.readMenuOption();
+//                    filterProductsByText(user, submenuOpt);
+                      filterProductsByText(user);
                     break;
 
                 case 2:
-                    OnlineShopMenu.printDisplayProductByPriceMenu();
-                    submenuOpt = OnlineShopMenu.readMenuOption();
-                    sortProductByPrice(user, submenuOpt);
+                 //   OnlineShopMenu.printDisplayProductByPriceMenu();
+                 //   submenuOpt = OnlineShopMenu.readMenuOption();
+                 //   sortProductByPrice(user, submenuOpt);
+                    sortProductByPrice(user);
                     break;
 
                 case 3:
-                    OnlineShopMenu.printDisplayProductByPopularityMenu();
-                    submenuOpt = OnlineShopMenu.readMenuOption();
-                    sortProductByPopularity(user, submenuOpt);
+//                    OnlineShopMenu.printDisplayProductByPopularityMenu();
+//                    submenuOpt = OnlineShopMenu.readMenuOption();
+//                    sortProductByPopularity(user, submenuOpt);
+                    sortProductByPopularity(user);
                     break;
 
                 case 4:
-                    OnlineShopMenu.printDisplayProductByNameMenu();
-                    submenuOpt = OnlineShopMenu.readMenuOption();
-                    sortProductByName(user, submenuOpt);
+//                    OnlineShopMenu.printDisplayProductByNameMenu();
+//                    submenuOpt = OnlineShopMenu.readMenuOption();
+ //                   sortProductByName(user, submenuOpt);
+                    sortProductByName(user);
                     break;
 
                 case 5:
@@ -326,13 +450,18 @@ public class OnlineShop {
                       break;
 
                 case 7:
-                    OnlineShopMenu.printDisplayProductByDiscountPriceMenu();
-                    submenuOpt = OnlineShopMenu.readMenuOption();
-                    sortProductByDiscountPrice(user, submenuOpt);
+//                    OnlineShopMenu.printDisplayProductByDiscountPriceMenu();
+//                    submenuOpt = OnlineShopMenu.readMenuOption();
+ //                   sortProductByDiscountPrice(user, submenuOpt);
+                    sortProductByDiscountPrice(user);
                     break;
 
-                case 8: runShop = false;
+                case 9: runShop = false;
                         break;
+
+                case 8: user.viewSold();
+                        break;
+
 
                 default: System.out.println(Constants.MESSAGE_INVALID_OPTION_1);
                          break;
@@ -342,144 +471,202 @@ public class OnlineShop {
         return null;
     }
 
-    public void filterProductsByText(Person person, int option) {
+    public void filterProductsByText(Person person) {
         String filterText;
-        if(option == 1) {
+        while (true) {
+            OnlineShopMenu.printFilterProductsByTextMenu();
+           int option = OnlineShopMenu.readMenuOption();
 
-            System.out.println(Constants.MESSAGE_ENTER_TEXT_4);
-            filterText=Validation.readAString(ValidationType.SEARCHING_TEXT);
-            person.filterAllProductsByText(filterText, db_prod.getListOfProduct());
+            if (option == 1) {
 
-        }
-        else if(option == 2) {
-            System.out.println(Constants.MESSAGE_ENTER_TEXT_4);
-            filterText=Validation.readAString(ValidationType.SEARCHING_TEXT);
-            System.out.println("Please choose a category: ");
-            System.out.println("SELECT the products's category you want to search :\n1. AnimalFood\n2. Clothes\n3. Dermatocosmetics\n4. Food and drinks\n5. Electronics");
+                System.out.println(Constants.MESSAGE_ENTER_TEXT_4);
+                filterText = Validation.readAString(ValidationType.SEARCHING_TEXT);
+                person.filterAllProductsByText(filterText);
 
-            int cat=-1;
-            cat = OnlineShopMenu.readMenuOption();
-
-            switch (cat) {
-                case 1:
-                    person.filterOneCategoryProductsByText(filterText, Category.ANIMALE, db_prod.getListOfProduct());
-                    break;
-                case 2:
-                    person.filterOneCategoryProductsByText(filterText, Category.VESTIMENTATIE, db_prod.getListOfProduct());
-                    break;
-                case 3:
-                    person.filterOneCategoryProductsByText(filterText, Category.COSMETICE, db_prod.getListOfProduct());
-                    break;
-                case 4:
-                    person.filterOneCategoryProductsByText(filterText, Category.ALIMENTE, db_prod.getListOfProduct());
-                    break;
-                case 5:
-                    person.filterOneCategoryProductsByText(filterText, Category.ELECTRONICE, db_prod.getListOfProduct());
-                    break;
-                default :
-                    System.out.println(Constants.MESSAGE_INVALID_CATEGORY_5);
-                    break;
             }
-        } else {
-            System.out.println(Constants.MESSAGE_INVALID_OPTION_6);
+            if (option == 2) {
+                System.out.println(Constants.MESSAGE_ENTER_TEXT_4);
+                filterText = Validation.readAString(ValidationType.SEARCHING_TEXT);
+                System.out.println("Please choose a category: ");
+                System.out.println("SELECT the products's category you want to search :\n1. AnimalFood\n2. Clothes\n3. Dermatocosmetics\n4. Food and drinks\n5. Electronics");
+
+                int cat = -1;
+                cat = OnlineShopMenu.readMenuOption();
+
+                switch (cat) {
+                    case 1:
+                        person.filterOneCategoryProductsByText(filterText, Category.ANIMALE);
+                        break;
+                    case 2:
+                        person.filterOneCategoryProductsByText(filterText, Category.VESTIMENTATIE);
+                        break;
+                    case 3:
+                        person.filterOneCategoryProductsByText(filterText, Category.COSMETICE);
+                        break;
+                    case 4:
+                        person.filterOneCategoryProductsByText(filterText, Category.ALIMENTE);
+                        break;
+                    case 5:
+                        person.filterOneCategoryProductsByText(filterText, Category.ELECTRONICE);
+                        break;
+                    default:
+                        System.out.println(Constants.MESSAGE_INVALID_CATEGORY_5);
+                        break;
+                }
+            }
+
+            if (option == 3) {
+                return;
+            }
+
+            if (option > 3) {
+                System.out.println(Constants.MESSAGE_INVALID_OPTION_6);
+
+            }
         }
     }
 
-    public void sortProductByPrice(Person person, int optionPrice) {
+    public void sortProductByPrice(Person person) {
 
-        if(optionPrice == 1)
-            person.comparingAllProductsByPriceAscending(db_prod.getListOfProduct());
+        while(true) {
 
-        if(optionPrice == 2)
-            person.comparingAllProductsByPriceDescending(db_prod.getListOfProduct());
+             OnlineShopMenu.printDisplayProductByPriceMenu();
+             int optionPrice = OnlineShopMenu.readMenuOption();
 
-        if(optionPrice == 3) {
-            System.out.println("SELECT the product's category you want to search:\n1. AnimalFood\n2. Clothes\n3. Dermatocosmetics\n4. Food and drinks\n5. Electronics");
-            int chosenOp = OnlineShopMenu.readMenuOption();
-            person.comparingOneCategoryProductsByPriceAscending(chosenOp, db_prod.getListOfProduct());
-        }
+            if (optionPrice == 1)
+                person.comparingAllProductsByPriceAscending();
 
-        if(optionPrice == 4) {
-            System.out.println("SELECT the product's category you want to search :\n1. AnimalFood\n2. Clothes\n3. Dermatocosmetics\n4. Food and drinks\n5. Electronics");
-            int chosenOp = OnlineShopMenu.readMenuOption();
-            person.comparingOneCategoryProductsByPriceDescending(chosenOp, db_prod.getListOfProduct());
-        }
+            if (optionPrice == 2)
+                person.comparingAllProductsByPriceDescending();
 
-        if(optionPrice > 4 || optionPrice < 1){
-            System.out.println(Constants.MESSAGE_INVALID_OPTION_6);
-        }
-    }
+            if (optionPrice == 3) {
+                System.out.println("SELECT the product's category you want to search:\n1. AnimalFood\n2. Clothes\n3. Dermatocosmetics\n4. Food and drinks\n5. Electronics");
+                int chosenOp = OnlineShopMenu.readMenuOption();
+                person.comparingOneCategoryProductsByPriceAscending(chosenOp);
+            }
 
-    public void sortProductByPopularity(Person person, int optionPopularity) {
+            if (optionPrice == 4) {
+                System.out.println("SELECT the product's category you want to search :\n1. AnimalFood\n2. Clothes\n3. Dermatocosmetics\n4. Food and drinks\n5. Electronics");
+                int chosenOp = OnlineShopMenu.readMenuOption();
+                person.comparingOneCategoryProductsByPriceDescending(chosenOp);
+            }
 
-        if(optionPopularity == 1)
-            person.comparingAllProductsByPopularityAscending(db_prod.getListOfProduct());
+            if(optionPrice==5)
+                return;
 
-        if(optionPopularity == 2)
-            person.comparingAllProductsByPopularityDescending(db_prod.getListOfProduct());
+            if (optionPrice > 5 || optionPrice < 1) {
+                System.out.println(Constants.MESSAGE_INVALID_OPTION_6);
+            }
 
-        if(optionPopularity == 3){
-            System.out.println("SELECT the product's category you want to search :\n1. AnimalFood\n2. Clothes\n3. Dermatocosmetics\n4. Food and drinks\n5. Electronics");
-            int chosenOp = OnlineShopMenu.readMenuOption();
-            person.comparingOneCategoryProductsByPopularityAscending(chosenOp, db_prod.getListOfProduct());
-        }
-
-        if(optionPopularity == 4){
-            System.out.println("SELECT the product's category you want to search :\n1. AnimalFood\n2. Clothes\n3. Dermatocosmetics\n4. Food and drinks\n5. Electronics");
-            int chosenOp = OnlineShopMenu.readMenuOption();
-            person.comparingOneCategoryProductsByPopularityDescending(chosenOp, db_prod.getListOfProduct());
-        }
-
-        if(optionPopularity > 4 || optionPopularity < 1){
-            System.out.println(Constants.MESSAGE_INVALID_OPTION_6);
         }
     }
 
-    public void sortProductByName(Person person, int optionNameMenu){
-        if(optionNameMenu == 1)
-            person.comparingAllProductsByNameAscending(db_prod.getListOfProduct());
+    public void sortProductByPopularity(Person person) {
 
-        if(optionNameMenu == 2)
-            person.comparingAllProductsByNameDescending(db_prod.getListOfProduct());
+        while(true) {
+            OnlineShopMenu.printDisplayProductByPopularityMenu();
+            int optionPopularity = OnlineShopMenu.readMenuOption();
 
-        if(optionNameMenu == 3){
-            System.out.println("SELECT the product's category you want to search :\n1. AnimalFood\n2. Clothes\n3. Dermatocosmetics\n4. Food and drinks\n5. Electronics");
-            int chosenOp = OnlineShopMenu.readMenuOption();
-            person.comparingOneCategoryProductsByNameAscending(chosenOp, db_prod.getListOfProduct());
-        }
+            if (optionPopularity == 1)
+                person.comparingAllProductsByPopularityAscending();
 
-        if(optionNameMenu == 4){
-            System.out.println("SELECT the product's category you want to search :\n1. AnimalFood\n2. Clothes\n3. Dermatocosmetics\n4. Food and drinks\n5. Electronics");
-            int chosenOp = OnlineShopMenu.readMenuOption();
-            person.comparingOneCategoryProductsByNameDescending(chosenOp, db_prod.getListOfProduct());
-        }
+            if (optionPopularity == 2)
+                person.comparingAllProductsByPopularityDescending();
 
-        if(optionNameMenu > 4 || optionNameMenu < 1){
-            System.out.println(Constants.MESSAGE_INVALID_OPTION_6);
+            if (optionPopularity == 3) {
+                System.out.println("SELECT the product's category you want to search :\n1. AnimalFood\n2. Clothes\n3. Dermatocosmetics\n4. Food and drinks\n5. Electronics");
+                int chosenOp = OnlineShopMenu.readMenuOption();
+                person.comparingOneCategoryProductsByPopularityAscending(chosenOp);
+            }
+
+            if (optionPopularity == 4) {
+                System.out.println("SELECT the product's category you want to search :\n1. AnimalFood\n2. Clothes\n3. Dermatocosmetics\n4. Food and drinks\n5. Electronics");
+                int chosenOp = OnlineShopMenu.readMenuOption();
+                person.comparingOneCategoryProductsByPopularityDescending(chosenOp);
+            }
+
+            if(optionPopularity ==5){
+               return;
+            }
+
+            if (optionPopularity > 5 || optionPopularity < 1) {
+                System.out.println(Constants.MESSAGE_INVALID_OPTION_6);
+            }
+
         }
     }
 
-    public void  sortProductByDiscountPrice (Person person, int optionDiscountPrice){
-        if(optionDiscountPrice == 1)
-            person.comparingAllProductsByDiscountPriceAscending(db_prod.getListOfProduct());
+    public void sortProductByName(Person person) {
+        while (true) {
 
-        if(optionDiscountPrice == 2)
-            person.comparingAllProductsByDiscountPriceDescending(db_prod.getListOfProduct());
+            OnlineShopMenu.printDisplayProductByNameMenu();
+            int optionNameMenu = OnlineShopMenu.readMenuOption();
 
-        if(optionDiscountPrice == 3){
-            System.out.println("SELECT the product's category you want to search:\n1. AnimalFood\n2. Clothes\n3. Dermatocosmetics\n4. Food and drinks\n5. Electronics");
-            int chosenOp = OnlineShopMenu.readMenuOption();
-            person.comparingOneCategoryProductsByDiscountPriceAscending(chosenOp, db_prod.getListOfProduct());
+
+            if (optionNameMenu == 1)
+                person.comparingAllProductsByNameAscending();
+
+            if (optionNameMenu == 2)
+                person.comparingAllProductsByNameDescending();
+
+            if (optionNameMenu == 3) {
+                System.out.println("SELECT the product's category you want to search :\n1. AnimalFood\n2. Clothes\n3. Dermatocosmetics\n4. Food and drinks\n5. Electronics");
+                int chosenOp = OnlineShopMenu.readMenuOption();
+                person.comparingOneCategoryProductsByNameAscending(chosenOp);
+            }
+
+            if (optionNameMenu == 4) {
+                System.out.println("SELECT the product's category you want to search :\n1. AnimalFood\n2. Clothes\n3. Dermatocosmetics\n4. Food and drinks\n5. Electronics");
+                int chosenOp = OnlineShopMenu.readMenuOption();
+                person.comparingOneCategoryProductsByNameDescending(chosenOp);
+            }
+
+            if (optionNameMenu == 5) {
+                return;
+            }
+
+            if (optionNameMenu > 5 || optionNameMenu < 1) {
+                System.out.println(Constants.MESSAGE_INVALID_OPTION_6);
+            }
+
         }
 
-        if(optionDiscountPrice == 4){
-            System.out.println("SELECT the product's category you want to search :\n1. AnimalFood\n2. Clothes\n3. Dermatocosmetics\n4. Food and drinks\n5. Electronics");
-            int chosenOp = OnlineShopMenu.readMenuOption();
-            person.comparingOneCategoryProductsByDiscountPriceDescending(chosenOp, db_prod.getListOfProduct());
-        }
+    }
 
-        if(optionDiscountPrice > 4 || optionDiscountPrice  < 1){
-            System.out.println(Constants.MESSAGE_INVALID_OPTION_6);
+    public void  sortProductByDiscountPrice (Person person){
+
+        while(true) {
+
+            OnlineShopMenu.printDisplayProductByDiscountPriceMenu();
+           int optionDiscountPrice = OnlineShopMenu.readMenuOption();
+
+
+            if (optionDiscountPrice == 1)
+                person.comparingAllProductsByDiscountPriceAscending();
+
+            if (optionDiscountPrice == 2)
+                person.comparingAllProductsByDiscountPriceDescending();
+
+            if (optionDiscountPrice == 3) {
+                System.out.println("SELECT the product's category you want to search:\n1. AnimalFood\n2. Clothes\n3. Dermatocosmetics\n4. Food and drinks\n5. Electronics");
+                int chosenOp = OnlineShopMenu.readMenuOption();
+                person.comparingOneCategoryProductsByDiscountPriceAscending(chosenOp);
+            }
+
+            if (optionDiscountPrice == 4) {
+                System.out.println("SELECT the product's category you want to search :\n1. AnimalFood\n2. Clothes\n3. Dermatocosmetics\n4. Food and drinks\n5. Electronics");
+                int chosenOp = OnlineShopMenu.readMenuOption();
+                person.comparingOneCategoryProductsByDiscountPriceDescending(chosenOp);
+            }
+
+            if(optionDiscountPrice ==5){
+                return;
+            }
+
+            if (optionDiscountPrice > 5 || optionDiscountPrice < 1) {
+                System.out.println(Constants.MESSAGE_INVALID_OPTION_6);
+            }
+
         }
     }
 
@@ -487,7 +674,7 @@ public class OnlineShop {
         String prName;
         System.out.println("Please enter the name of the product you want to add to your cart: ");
         prName = Validation.readAString(ValidationType.DETAILS);
-        user.addToShoppingBag(prName, db_prod.getListOfProduct());
+        user.addToShoppingBag(prName);
 
     }
 
@@ -506,9 +693,10 @@ public class OnlineShop {
             switch (option) {
 
                 case 1:
-                    System.out.println("SELECT the category of product you want to add :\n1. AnimalFood\n2. Clothes\n3. Dermatocosmetics\n4. Food and drinks\n5. Laptop\n6. Mobile phone");
-                    submenuOpt = OnlineShopMenu.readMenuOption();
-                    manuallyAddProducts(admin, submenuOpt);
+//                    System.out.println("SELECT the category of product you want to add :\n1. AnimalFood\n2. Clothes\n3. Dermatocosmetics\n4. Food and drinks\n5. Laptop\n6. Mobile phone\n7.Return to previous menu");
+//                    submenuOpt = OnlineShopMenu.readMenuOption();
+ //                   manuallyAddProducts(admin, submenuOpt);
+                    manuallyAddProducts(admin);
                     break;
 
                 case 2:
@@ -524,12 +712,12 @@ public class OnlineShop {
                     break;
 
                 case 5:
-                    admin.seeAllProducts(db_prod.getListOfProduct());
-                    admin.seeAllProductsTable(db_prod.getListOfProduct());
+                    admin.seeAllProducts();
+                    admin.seeAllProductsTable();
                     break;
 
                 case 6:
-                    admin.seeAllPersons(db_p.getMapPersons());
+                    admin.seeAllPersons();
                     break;
 
                 case 7:
@@ -557,22 +745,33 @@ public class OnlineShop {
         return null;
     }
 
-    public void manuallyAddProducts(Admin admin, int category){
-        if (category == 1)
-            admin.addProducts(new AnimalFood(), db_prod.getListOfProduct());
-        if (category == 2)
-            admin.addProducts(new Clothes(), db_prod.getListOfProduct());
-        if (category == 3)
-            admin.addProducts(new Dermatocosmetics(), db_prod.getListOfProduct());
-        if (category == 4)
-            admin.addProducts(new FoodAndDrinks(), db_prod.getListOfProduct());
-        if (category == 5)
-            admin.addProducts(new Laptop(), db_prod.getListOfProduct());
-        if (category == 6)
-            admin.addProducts(new MobilePhone(), db_prod.getListOfProduct());
+    public void manuallyAddProducts(Admin admin) {
 
-        if (category > 6)
-            System.out.println(Constants.MESSAGE_INVALID_OPTION_7);
+        while (true) {
+
+            System.out.println("SELECT the category of product you want to add :\n1. AnimalFood\n2. Clothes\n3. Dermatocosmetics\n4. Food and drinks\n5. Laptop\n6. Mobile phone\n7. Return to previous menu");
+            int category = OnlineShopMenu.readMenuOption();
+            if (category == 1)
+                admin.addProducts(new AnimalFood());
+            if (category == 2)
+                admin.addProducts(new Clothes());
+            if (category == 3)
+                admin.addProducts(new Dermatocosmetics());
+            if (category == 4)
+                admin.addProducts(new FoodAndDrinks());
+            if (category == 5)
+                admin.addProducts(new Laptop());
+            if (category == 6)
+                admin.addProducts(new MobilePhone());
+            if (category == 7)
+               break;
+
+            if (category >7) {
+                System.out.println(Constants.MESSAGE_INVALID_OPTION_7);
+
+            }
+
+        }
     }
 
     public void modifyProductPrice(Admin admin) {
@@ -584,16 +783,12 @@ public class OnlineShop {
         Scanner scanner = new Scanner(System.in);
 
         do {
-            System.out.println(Constants.MESSAGE_ENTER_PR_NAME_8);
-            name = scanner.nextLine();
-            isNameValid = Validation.validateDetails(name, Constants.DETAILS_LENGTH);
-        }
-        while (!isNameValid);
-
-        do {
             System.out.println(Constants.MESSAGE_ENTER_PR_ID_9);
             try {
                 idProd = scanner.nextInt();
+                if(idProd==0){
+                    return;
+                }
             } catch (InputMismatchException e) {
                 System.out.println(Constants.MESSAGE_ERROR_NUMBER_2);
                 scanner.nextLine();
@@ -614,74 +809,77 @@ public class OnlineShop {
         }
         while (!isPriceValid);
 
-        System.out.println("Will modify the following product: ");
-        System.out.println("Product Name:" + name);
-        System.out.println("Product ID  :" + idProd);
-        System.out.println("New Price   :" + newPrice);
+//        System.out.println("Will modify the following product: ");
+//        System.out.println("Product Name:" + name);
+//        System.out.println("Product ID  :" + idProd);
+//        System.out.println("New Price   :" + newPrice);
 
-        admin.modifyPrice(idProd, name, newPrice, db_prod.getListOfProduct());
+        admin.modifyPrice(idProd, newPrice);
     }
 
     public void modifyProductDescription(Admin admin){
-        String productname, newDescription;
+        String newDescription;
         int idProduct = -1;
 
-        System.out.println(Constants.MESSAGE_ENTER_PR_NAME_8);
-        productname = Validation.readAString(ValidationType.DETAILS);
 
         System.out.println(Constants.MESSAGE_ENTER_PR_ID_9);
         idProduct = Validation.readANumber(ValidationType.ID);
+        if (idProduct==0){
+            return;
+        }
 
         System.out.println("Please enter the new description: ");
         newDescription = Validation.readAString(ValidationType.DETAILS);
 
-        admin.modifyDescription(idProduct,productname, newDescription, db_prod.getListOfProduct());
+        admin.modifyDescription(idProduct, newDescription);
     }
 
     public void removeProduct(Admin admin){
         int id = -1;
-        String productName;
-
-        System.out.println(Constants.MESSAGE_ENTER_PR_NAME_8);
-        productName = Validation.readAString(ValidationType.DETAILS);
 
         System.out.println(Constants.MESSAGE_ENTER_PR_ID_9);
         id = Validation.readANumber(ValidationType.ID);
+        if(id==0){
+            return;
+        }
 
-        admin.removeProductById(productName, id, db_prod.getListOfProduct());
+        admin.removeProductById(id);
 
     }
+
     public void removePersonByAdmin(Admin admin){
         int personId=-1;
-        System.out.println("Please enter the id's person you want to remove from the database:");
+        System.out.println("Please enter the id's person you want to remove from the database or press '0' to return to previous Menu:");
         personId = Validation.readANumber(ValidationType.ID);
-        admin.removePerson(personId, db_p.getMapPersons());
+        if(personId==0){
+            return;
+        }
+        admin.removePerson(personId);
 
     }
+
     public void addNewAdmin(Admin admin) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, IOException, InvalidKeySpecException, BadPaddingException, InvalidKeyException {
         Admin newAdmin = new Admin();
-        newAdmin.populateDetails(db_k);
-        admin.addAnewPerson(db_p.getMapPersons(), newAdmin);
+        newAdmin.populateDetails();
+        admin.addAnewPerson( newAdmin);
     }
 
     public void modifyProductDiscount(Admin admin){
         int newDiscount = -1;
         int idP=-1;
-        String nameP;
 
-        System.out.println(Constants.MESSAGE_ENTER_PR_NAME_8);
-        nameP = Validation.readAString(ValidationType.DETAILS);
 
         System.out.println(Constants.MESSAGE_ENTER_PR_ID_9);
         idP = Validation.readANumber(ValidationType.ID);
+        if (idP==0){
+            return;
+        }
 
         System.out.println("Please enter the new discount (0-100) : ");
         newDiscount = Validation.readANumber(ValidationType.DISCOUNT);
 
-        admin.modifyDiscount(idP,nameP, newDiscount, db_prod.getListOfProduct());
+        admin.modifyDiscount(idP, newDiscount);
 
     }
-
-
 
 }

@@ -51,7 +51,7 @@ public class Validation {
                 case VOLUME    -> isValid = Validation.validateVolume(result);
                 case NUMBER_KG -> isValid = Validation.validateNumberKg(result);
                 case ID        -> isValid = Validation.validateID(result);
-                // TODO: Add defalut branch
+
             }
         }
         while (!isValid);
@@ -71,7 +71,7 @@ public class Validation {
                 case USERNAME ->  isValid = Validation.validateDetails(result,Constants.USERNAME_PASSWORD_LENGTH);
                 case PROCESSOR -> isValid = Validation.validateProcesor(result);
                 case SEARCHING_TEXT -> isValid=Validation.validateDetails(result,Constants.MINIMUM_LENGTH_FOR_SEARCHING);
-                // TODO: Add defalut branch
+
             }
         }
         while (!isValid);

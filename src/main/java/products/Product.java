@@ -1,10 +1,17 @@
 package products;
 
+import jakarta.persistence.*;
 import util.*;
 
+import java.util.HashMap;
+import java.util.Map;
 
+@Entity
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public class Product {
     private Category category;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String name;
     private String description;
@@ -14,7 +21,8 @@ public class Product {
     private int priceWithDiscount;
 
     public Product() {
-        priceWithDiscount = price -(price*discount/100);
+        setCategory(Category.UNKNOWN);
+        priceWithDiscount = price -( (price * discount) /100);
     }
 
     public Product(Category category, int id, String name, String description, int price, int discount, int countPopularity) {
@@ -27,10 +35,18 @@ public class Product {
         this.countPopularity = countPopularity;
         priceWithDiscount = price-(price*discount/100);
     }
+    public Product(Category category, String name, String description, int price, int discount, int countPopularity) {
+        this.category = category;
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.discount = discount;
+        this.countPopularity = countPopularity;
+        priceWithDiscount = price-(price*discount/100);
+    }
 
     public void populateProduct() {
 
-        boolean isOptionValid =false;
 
         System.out.println("Enter the product's name: ");
         name= Validation.readAString(ValidationType.DETAILS);
@@ -45,40 +61,8 @@ public class Product {
         System.out.println("Enter the discount ( choose between 0-100):");
         discount = Validation.readANumber(ValidationType.DISCOUNT);
 
+        priceWithDiscount=price-(price*discount/100);
 
-        System.out.println("SELECT the category for this product : \n1. Animal Food\n2. Clothes\n3. Dermatocosmetics\n4. Food and Drinks \n5. Electronics ");
-
-       do {
-           int opt = OnlineShopMenu.readMenuOption();
-
-            switch (opt) {
-                case 1:
-                    this.setCategory(Category.ANIMALE);
-                    isOptionValid=true;
-                    break;
-                case 2:
-                    this.setCategory(Category.VESTIMENTATIE);
-                    isOptionValid=true;
-                    break;
-                case 3:
-                    this.setCategory(Category.COSMETICE);
-                    isOptionValid=true;
-                    break;
-                case 4:
-                    this.setCategory(Category.ALIMENTE);
-                    isOptionValid=true;
-                    break;
-                case 5:
-                    this.setCategory(Category.ELECTRONICE);
-                    isOptionValid=true;
-                    break;
-                default:
-                    System.out.println(Constants.MESSAGE_INVALID_OPTION_1);
-                    isOptionValid=false;
-                    break;
-            }
-        }
-        while (!isOptionValid);
 
     }
 
@@ -156,6 +140,7 @@ public class Product {
                 ", price=" + price +
                 ", discount=" + discount +
                 ", countPopularity=" + countPopularity +
+                ", priceWithDiscount=" + priceWithDiscount +
                 '}';
     }
 
@@ -166,6 +151,7 @@ public class Product {
 
         return textTable;
     }
+
     public String printTalbeElm(){
         String textTable;
         textTable =             "|___________________________________________________________________________________________|\n";
@@ -173,4 +159,99 @@ public class Product {
 
         return textTable;
     }
+
+    // Table Column Dimension
+    @Transient
+    HashMap<String, Integer> tableColDimHM = new HashMap<>(Map.of("catLen", 17,"idLen",
+            8,"nameLen", 30,"descrLen", 40,"priceLen", 10,"discLen",
+            12,"countPopLen",15,"price%Len",10));
+
+
+
+    // Print a data Row
+    public String printTableRow(String inStr, int colLen) {
+
+        StringBuilder strBuilder = new StringBuilder();
+        int insertSpaces = colLen - (2 + inStr.length() + 1);
+
+        strBuilder.append("| ");
+        if( (inStr.length()+4) > colLen ){
+            strBuilder.append(inStr.substring(0,(colLen-3)));
+        } else {
+            strBuilder.append(inStr);
+        }
+        for(int i = 0; i<insertSpaces; i++) {
+            strBuilder.append(" ");
+        }
+        strBuilder.append("|");
+
+        return strBuilder.toString();
+    }
+
+    // Print the Table Header
+    public String printTableHeader2(){
+
+        StringBuilder strBuilder = new StringBuilder();
+
+
+        int sumColDim = 0;
+
+        // Sum all values in tableColDim
+        for(int val : tableColDimHM.values()){
+            sumColDim += val;
+        }
+
+        for(int i = 0; i<sumColDim; i++) {
+            strBuilder.append("-");
+        }
+
+        strBuilder.append("\n"); // <- tell the string builder that we want a new line
+
+        strBuilder.append(printTableRow("Category",        tableColDimHM.get("catLen"     )));
+        strBuilder.append(printTableRow("ID",              tableColDimHM.get("idLen"      )));
+        strBuilder.append(printTableRow("Name",            tableColDimHM.get("nameLen"    )));
+        strBuilder.append(printTableRow("Description",     tableColDimHM.get("descrLen"   )));
+        strBuilder.append(printTableRow("Price",           tableColDimHM.get("priceLen"   )));
+        strBuilder.append(printTableRow("Discount",        tableColDimHM.get("discLen"    )));
+        strBuilder.append(printTableRow("Price %",         tableColDimHM.get("price%Len"  )));
+        strBuilder.append(printTableRow("countPopularity", tableColDimHM.get("countPopLen")));
+
+        return strBuilder.toString();
+    }
+
+    public String printTableElm2(){
+
+        try {
+            StringBuilder strBuilder = new StringBuilder();
+            int sumColDim = 0;
+
+            // Sum all values in tableColDim
+            for (int val : tableColDimHM.values()) {
+                sumColDim += val;
+            }
+
+            for (int i = 0; i < sumColDim; i++) {
+                strBuilder.append("-");
+            }
+
+            strBuilder.append("\n"); // <- tell the string builder that we want a new line
+
+            strBuilder.append(printTableRow(getCategory().toString(), tableColDimHM.get("catLen")));
+            strBuilder.append(printTableRow(String.valueOf(getId()), tableColDimHM.get("idLen")));
+            strBuilder.append(printTableRow(getName(), tableColDimHM.get("nameLen")));
+            strBuilder.append(printTableRow(getDescription(), tableColDimHM.get("descrLen")));
+            strBuilder.append(printTableRow(String.valueOf(getPrice()), tableColDimHM.get("priceLen")));
+            strBuilder.append(printTableRow(String.valueOf(getDiscount()), tableColDimHM.get("discLen")));
+            strBuilder.append(printTableRow(String.valueOf(getPriceWithDiscount()),tableColDimHM.get("price%Len")));
+            strBuilder.append(printTableRow(String.valueOf(getCountPopularity()), tableColDimHM.get("countPopLen")));
+
+            return strBuilder.toString();
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+
+        return "ERROR!!!";
+    }
+
+
 }

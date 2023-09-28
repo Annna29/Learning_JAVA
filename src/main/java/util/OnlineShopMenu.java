@@ -5,11 +5,13 @@ import java.util.Scanner;
 
 public class OnlineShopMenu {
 
+    // ----- MAIN MENU ----- //
     public static void printLoginMenu(){
         System.out.println("Choose an option from the below ones: ");
         System.out.println("1. SIGN UP");
         System.out.println("2. LOG IN");
         System.out.println("9. EXIT SHOP");
+
     }
 
     // ----- User MENU ----- //
@@ -23,7 +25,9 @@ public class OnlineShopMenu {
         System.out.println("5. ADD MONEY");
         System.out.println("6. ADD PRODUCTS TO YOUR CART AND BUY");
         System.out.println("7. DISPLAY PRODUCTS BY PRICE WITH DISCOUNT");
-        System.out.println("8. GO BACK TO MAIN MENU");
+        System.out.println("8. VIEW YOUR SOLD");
+        System.out.println("9. GO BACK TO MAIN MENU");
+
 
     }
 
@@ -32,6 +36,7 @@ public class OnlineShopMenu {
         System.out.println("Choose an option from the below ones: ");
         System.out.println("1. FILTER ALL PRODUCTS BY TEXT");
         System.out.println("2. FILTER A CATEGORY OF PRODUCTS BY TEXT");
+        System.out.println("3. RETURN TO PREVIOUS MENU ");
 
     }
 
@@ -42,6 +47,8 @@ public class OnlineShopMenu {
         System.out.println("2. DISPLAY ALL PRODUCTS BY PRICE (descending order) ");
         System.out.println("3. DISPLAY A CATEGORY OF PRODUCTS BY PRICE (ascending order)");
         System.out.println("4. DISPLAY A CATEGORY OF PRODUCTS BY PRICE (descending order)");
+        System.out.println("5. RETURN TO PREVIOUS MENU ");
+
     }
 
     // 3. DISPLAY PRODUCTS BY POPULARITY
@@ -51,6 +58,7 @@ public class OnlineShopMenu {
         System.out.println("2. DISPLAY ALL PRODUCTS BY POPULARITY (descending order) ");
         System.out.println("3. DISPLAY A CATEGORY OF PRODUCTS BY POPULARITY (ascending order)");
         System.out.println("4. DISPLAY A CATEGORY OF PRODUCTS BY POPULARITY (descending order)");
+        System.out.println("5. RETURN TO PREVIOUS MENU ");
     }
 
     // 4. DISPLAY PRODUCTS BY ALPHABETICAL ORDER
@@ -60,6 +68,7 @@ public class OnlineShopMenu {
         System.out.println("2. DISPLAY ALL PRODUCTS BY NAME (descending order) ");
         System.out.println("3. DISPLAY A CATEGORY OF PRODUCTS BY NAME (ascending order)");
         System.out.println("4. DISPLAY A CATEGORY OF PRODUCTS BY NAME (descending order)");
+        System.out.println("5. RETURN TO PREVIOUS MENU ");
     }
 
 
@@ -70,6 +79,8 @@ public class OnlineShopMenu {
         System.out.println("2. DISPLAY ALL PRODUCTS BY PRICE WITH DISCOUNT(descending order) ");
         System.out.println("3. DISPLAY A CATEGORY OF PRODUCTS BY PRICE WITH (ascending order)");
         System.out.println("4. DISPLAY A CATEGORY OF PRODUCTS BY PRICE WITH (descending order)");
+        System.out.println("5. RETURN TO PREVIOUS MENU ");
+
     }
 
 
@@ -87,6 +98,7 @@ public class OnlineShopMenu {
         System.out.println("8. ADD A NEW ADMIN");
         System.out.println("9.MODIFY THE DISCOUNT OF PRODUCTS");
         System.out.println("10. GO BACK TO MAIN MENU");
+
 
     }
 

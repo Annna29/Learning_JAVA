@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
 
 
 public class RSA {
@@ -19,20 +20,36 @@ public class RSA {
         generator.initialize(2048);    //generated keysize = 2048 bits;
         KeyPair pair = generator.generateKeyPair();
 
+
         return pair;
     }
 
      public static byte[] applyRSAEncryptingData (String message, PublicKey publicKey) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
 
-
+        byte [] myStuff;
          //now encrypting data
          Cipher encryptCipher = Cipher.getInstance("RSA");
          encryptCipher.init(Cipher.ENCRYPT_MODE,publicKey);
 
          byte[] messageBytes = message.getBytes(StandardCharsets.UTF_8);
          byte[] encryptedMessageBytes = encryptCipher.doFinal(messageBytes); // <----------
-         //String encodedMessage = Base64.getEncoder().encodeToString(encryptedMessageBytes);
-         // System.out.println(encodedMessage);
+
+        // System.out.println("EncriptedBytes: " + new String(encryptedMessageBytes));
+
+         String encodedMessage = Base64.getEncoder().encodeToString(encryptedMessageBytes);
+      //   System.out.println("String: " + encodedMessage);
+
+         myStuff = Base64.getDecoder().decode(encodedMessage);
+       //  System.out.println("Decripted to Bytes: " + new String(myStuff));
+
+//         if(encryptedMessageBytes.length == myStuff.length){
+//             System.out.println("Encription has same length... checking byte ot byte");
+//             for(int i=0; i<encryptedMessageBytes.length; i++){
+//                 if(encryptedMessageBytes[i] != myStuff[i]){
+//                     System.out.println("Missmatch at byte: " + i);
+//                 }
+//             }
+//         }
 
          return encryptedMessageBytes;
 

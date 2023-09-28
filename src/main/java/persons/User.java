@@ -1,24 +1,39 @@
 package persons;
+import jakarta.persistence.*;
+import keys.PersonKey;
 import products.Product;
+import util.ConnectionToDb;
 import util.Constants;
 
 import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
+@Entity
 public class User extends Person {
     private int sold;
-    private ArrayList<Product> shoppingBag;
+    String idsList;
 
     public User() {
-        shoppingBag = new ArrayList<>();
     }
 
     public User(String username, byte[] password) {
         super(username, password);
-        shoppingBag = new ArrayList<>();
     }
 
+    public User(String username, String pass, PersonKey personKey) {
+        super(username, pass, personKey);
+    }
+
+
+
+    public String getIdsList() {
+        return idsList;
+    }
+
+    public void setIdsList(String idsList) {
+        this.idsList = idsList;
+    }
     public int getSold() {
         return sold;
     }
@@ -27,17 +42,9 @@ public class User extends Person {
         this.sold = sold;
     }
 
-    public ArrayList<Product> getShoppingBag() {
-        return shoppingBag;
-    }
-
-    public void setShoppingBag(ArrayList<Product> shoppingBag) {
-        this.shoppingBag = shoppingBag;
-    }
 
 
-
-   public void addMoney(){
+    public void addMoney(){
         Scanner scanner= new Scanner(System.in);
 
         do {
@@ -56,6 +63,15 @@ public class User extends Person {
             }
             else {
                 sold = sold + moneySum;
+                EntityManager em = ConnectionToDb.connectToDb();
+                try {
+                    em.getTransaction().begin();
+                    int rows = em.createQuery(String.format("UPDATE Person SET sold=%d WHERE username='%s'",sold,getUsername())).executeUpdate();
+                    em.getTransaction().commit();
+                }
+                finally{
+                    em.close();
+                }
                 System.out.println("You have " + sold + " credit !");
                 break;
             }
@@ -64,64 +80,99 @@ public class User extends Person {
         while(true);
     }
 
-    public void addToShoppingBag(String name,ArrayList<Product> arrayList){
-      boolean  isAdding = false;
-        Scanner sc = new Scanner(System.in);
+    public void addToShoppingBag(String name){
 
-        for (Product p:arrayList ) {
-            if(p.getName().equalsIgnoreCase(name)) {
-                shoppingBag.add(p);
-                isAdding = true;
-            }
+
+        EntityManager em = ConnectionToDb.connectToDb();
+        try {
+            em.getTransaction().begin();
+           TypedQuery<Product> foundProduct = em.createQuery("FROM Product where name = :nameParam", Product.class);
+           foundProduct.setParameter("nameParam",name);
+           try {
+               Product productToBuy = foundProduct.getSingleResult();
+               System.out.println("The product was added to your cart!!!");
+               System.out.println("Please press 1 if you want to buy the product and press 2 if you want to go to options menu");
+               Scanner sc = new Scanner(System.in);
+               int opt = sc.nextInt();
+               if(opt==1){
+                   buyProduct(productToBuy);}
+               else if(opt==2) {
+                   return;
+               }
+
+           }
+           catch(NoResultException noResultException){
+               System.out.println("The product can not be added yo your cart !!!");
+
+
+           }
+
+            em.getTransaction().commit();
         }
-
-        if(isAdding) {
-             System.out.println("The product was added to your cart!!!");
-             System.out.println("Please press 1 if you want to buy the product and press 2 if you want to go to options menu");
-
-             int opt = sc.nextInt();
-             if(opt==1){
-                buyProduct(name);}
-             else if(opt==2) {
-                 return;
-
-             }
-        }
-        else {
-            System.out.println("The product can not be added yo your cart !!!");
-        }
-
-        Scanner scc = new Scanner(System.in);
-        System.out.println(Constants.MESSAGE_ENTER_TO_CONTINUE_14);
-        String x = scc.nextLine();
-    }
-
-    public void buyProduct (String productName){
-
-        boolean isInShoppingBag = false;
-        Product currentProduct  = new Product();
-        for (Product p:shoppingBag){
-            if(p.getName().equalsIgnoreCase(productName)){
-                currentProduct = p;
-                isInShoppingBag= true;
-            }
-
-        }
-
-        if(sold>=currentProduct.getPrice()&&isInShoppingBag) {
-           sold = sold-(currentProduct.getPrice()- (currentProduct.getPrice()*currentProduct.getDiscount()/100));
-            System.out.println("You bought the product: "+ productName);
-            System.out.println("Your sold is: "+ sold);
-            shoppingBag.remove(currentProduct);
-
-            // increase popularity count
-            currentProduct.setCountPopularity(currentProduct.getCountPopularity()+1);
-
-        }
-        else {
-            System.out.println("You don't have enough money !");
+        finally{
+            em.close();
         }
     }
+
+    public void buyProduct (Product productToBuy){
+
+
+        EntityManager em = ConnectionToDb.connectToDb();
+        try {
+            em.getTransaction().begin();
+            User foundPerson= em.createQuery(String.format("From Person where username='%s' ", getUsername()),User.class).getSingleResult();
+
+            if(foundPerson.getSold()>=(productToBuy.getPrice()- (productToBuy.getPrice()*productToBuy.getDiscount()/100))) {
+                sold = sold-(productToBuy.getPrice()- (productToBuy.getPrice()*productToBuy.getDiscount()/100));
+                System.out.println("You have bought the product: "+ productToBuy.getName() + " and you have spent "+ productToBuy.getPriceWithDiscount());
+                int rows = em.createQuery(String.format("UPDATE Person SET sold=%d WHERE username='%s'",sold,getUsername())).executeUpdate();
+               if(idsList==null){
+                   setIdsList(String.valueOf(productToBuy.getId()));
+               }
+               else
+                setIdsList(getIdsList()+","+ productToBuy.getId());
+
+                int row2 = em.createQuery(String.format("UPDATE Person SET idsList='%s' WHERE username='%s'",idsList,getUsername())).executeUpdate();
+                System.out.println("Your sold is: "+ sold);
+
+
+                // increase popularity count
+                productToBuy.setCountPopularity(productToBuy.getCountPopularity()+1);
+                int row = em.createQuery(String.format("UPDATE Product SET countPopularity=%d WHERE id=%d",productToBuy.getCountPopularity(),productToBuy.getId())).executeUpdate();
+
+
+            }
+            else {
+                System.out.println("You don't have enough money !");
+            }
+
+            em.getTransaction().commit();
+        }
+        finally{
+            em.close();
+        }
+
+
+    }
+
+
+    public void viewSold() {
+
+        EntityManager em = ConnectionToDb.connectToDb();
+
+        try {
+            em.getTransaction().begin();
+            User foundPerson = em.find(User.class, getId());
+            System.out.println("Your sold is: " + foundPerson.getSold());
+            if(foundPerson.getSold()==0)
+                System.out.println("Please add money if you want to place an order.");
+        }
+        finally {
+            em.close();
+        }
+
+    }
+
 
     @Override
     public String toString() {
