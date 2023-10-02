@@ -8,7 +8,6 @@ public class Constants {
     public static final int MINIMUM_LENGTH_FOR_SEARCHING = 1;
 
     // Strings -> messages
-
     public static final String MESSAGE_INVALID_OPTION_1 = "Invalid option! Select a number again! ";
     public static final String MESSAGE_ERROR_NUMBER_2  = "You did not enter a number! ";
     public static final String MESSAGE_CANCEL_ACTION_3 = "Type again or press '9' to get back to Main-Menu!";
@@ -22,9 +21,4 @@ public class Constants {
     public static final String MESSAGE_PROD_NOT_FOUND_11 = "The product was not found...";
     public static final String MESSAGE_PROD_LIST_EMPTY_12 = "The list of products is empty ! ";
     public static final String MESSAGE_PERS_LIST_EMPTY_13 = "The list of persons is empty ! ";
-
-
-
-
-
 }

@@ -125,7 +125,6 @@ public class Person {
     }
 
 
-
     public void setAccountDetails() {
 
         System.out.println("PLease complete some personal data... ");
@@ -143,7 +142,6 @@ public class Person {
         dateOfBirth = Validation.readAString(ValidationType.DETAILS);
 
     }
-
 
     public void filterAllProductsByText(String text) {
 
@@ -166,16 +164,11 @@ public class Person {
                 System.out.println(results.getResultList().get(i).printTableElm2());
             }
 
-
-
             em.getTransaction().commit();
-
         }
-
         finally{
             em.close();
         }
-
     }
 
     public void filterOneCategoryProductsByText(String text, Category category) {
@@ -183,9 +176,9 @@ public class Person {
         EntityManager em = ConnectionToDb.connectToDb();
         try {
             em.getTransaction().begin();
-        TypedQuery<Product> results = em.createQuery(" from Product where name like:name and category = :category", Product.class);
-        results.setParameter("name","%"+text+"%");
-        results.setParameter("category",category);
+            TypedQuery<Product> results = em.createQuery(" from Product where name like:name and category = :category", Product.class);
+            results.setParameter("name","%"+text+"%");
+            results.setParameter("category",category);
             if(results.getResultList().size()==0)
                 System.out.println("There are no results...");
 //        for (int i=0;i<results.getResultList().size();i++){
@@ -200,15 +193,13 @@ public class Person {
             }
 
         em.getTransaction().commit();
-    }
+        }
         finally{
-        em.close();
-    }
-
+            em.close();
+        }
     }
 
     public void comparingAllProductsByPriceAscending(){
-
 
         EntityManager em = ConnectionToDb.connectToDb();
         try {
@@ -227,15 +218,13 @@ public class Person {
                 }
                 System.out.println(results.getResultList().get(i).printTableElm2());
             }
-
             em.getTransaction().commit();
         }
         finally{
             em.close();
         }
-
-
     }
+
     public void comparingAllProductsByPriceDescending(){
 
         EntityManager em = ConnectionToDb.connectToDb();
@@ -254,7 +243,6 @@ public class Person {
                 }
                 System.out.println(results.getResultList().get(i).printTableElm2());
             }
-
             em.getTransaction().commit();
         }
         finally{
@@ -278,36 +266,35 @@ public class Person {
            case 4:
                x = Category.ALIMENTE;
                break;
-           case 5, 6:
+           case 5:
                x = Category.ELECTRONICE;
                break;
        }
 
 
-           EntityManager em = ConnectionToDb.connectToDb();
-           try {
-               em.getTransaction().begin();
-               TypedQuery<Product> results = em.createQuery(" from Product where category = :category order by price asc", Product.class);
-               results.setParameter("category", x);
-               if(results.getResultList().size()==0)
-                   System.out.println("There are no results...");
+       EntityManager em = ConnectionToDb.connectToDb();
+       try {
+           em.getTransaction().begin();
+           TypedQuery<Product> results = em.createQuery(" from Product where category = :category order by price asc", Product.class);
+           results.setParameter("category", x);
+           if(results.getResultList().size()==0)
+               System.out.println("There are no results...");
 
 //               for (int i = 0; i < results.getResultList().size(); i++) {
 //                   System.out.println(results.getResultList().get(i));
 //               }
 
-               for(int i = 0 ; i < results.getResultList().size(); i++){
-                   if(i==0) {
-                       System.out.println(results.getResultList().get(i).printTableHeader2());
-                   }
-                   System.out.println(results.getResultList().get(i).printTableElm2());
+           for(int i = 0 ; i < results.getResultList().size(); i++){
+               if(i==0) {
+                   System.out.println(results.getResultList().get(i).printTableHeader2());
                }
-
-               em.getTransaction().commit();
-           } finally {
-               em.close();
+               System.out.println(results.getResultList().get(i).printTableElm2());
            }
 
+           em.getTransaction().commit();
+       } finally {
+           em.close();
+       }
    }
 
     public void comparingOneCategoryProductsByPriceDescending( int opt){
@@ -322,9 +309,8 @@ public class Person {
                 break;
             case 4: x = Category.ALIMENTE;
                 break;
-            case 5,6: x = Category.ELECTRONICE;
+            case 5: x = Category.ELECTRONICE;
                 break;
-
         }
 
 
@@ -355,7 +341,6 @@ public class Person {
 
     public void comparingAllProductsByDiscountPriceAscending(){
 
-
         EntityManager em = ConnectionToDb.connectToDb();
         try {
             em.getTransaction().begin();
@@ -378,11 +363,8 @@ public class Person {
         } finally {
             em.close();
         }
-
-
     }
     public void comparingAllProductsByDiscountPriceDescending(){
-
 
         EntityManager em = ConnectionToDb.connectToDb();
         try {
@@ -402,8 +384,6 @@ public class Person {
                 System.out.println(results.getResultList().get(i).printTableElm2());
             }
 
-
-
             em.getTransaction().commit();
         } finally {
             em.close();
@@ -422,11 +402,9 @@ public class Person {
                 break;
             case 4: x = Category.ALIMENTE;
                 break;
-            case 5,6: x = Category.ELECTRONICE;
+            case 5: x = Category.ELECTRONICE;
                 break;
         }
-
-
 
         EntityManager em = ConnectionToDb.connectToDb();
         try {
@@ -451,7 +429,6 @@ public class Person {
         } finally {
             em.close();
         }
-
     }
 
     public void comparingOneCategoryProductsByDiscountPriceDescending( int opt){
@@ -466,7 +443,7 @@ public class Person {
                 break;
             case 4: x = Category.ALIMENTE;
                 break;
-            case 5,6: x = Category.ELECTRONICE;
+            case 5: x = Category.ELECTRONICE;
                 break;
 
         }
@@ -496,11 +473,7 @@ public class Person {
         }
     }
 
-
-
     public void comparingAllProductsByPopularityAscending(){
-
-
         EntityManager em = ConnectionToDb.connectToDb();
         try {
             em.getTransaction().begin();
@@ -519,8 +492,6 @@ public class Person {
                 System.out.println(results.getResultList().get(i).printTableElm2());
             }
 
-
-
             em.getTransaction().commit();
         }
         finally{
@@ -529,7 +500,6 @@ public class Person {
     }
 
     public void comparingAllProductsByPopularityDescending(){
-
 
         EntityManager em = ConnectionToDb.connectToDb();
         try {
@@ -568,10 +538,9 @@ public class Person {
                 break;
             case 4: x = Category.ALIMENTE;
                 break;
-            case 5,6: x = Category.ELECTRONICE;
+            case 5: x = Category.ELECTRONICE;
                 break;
         }
-
 
         EntityManager em = ConnectionToDb.connectToDb();
         try {
@@ -610,10 +579,9 @@ public class Person {
                 break;
             case 4: x = Category.ALIMENTE;
                 break;
-            case 5,6: x = Category.ELECTRONICE;
+            case 5: x = Category.ELECTRONICE;
                 break;
         }
-
 
         EntityManager em = ConnectionToDb.connectToDb();
         try {
@@ -642,8 +610,6 @@ public class Person {
 
     public void comparingAllProductsByNameAscending(){
 
-
-
         EntityManager em = ConnectionToDb.connectToDb();
         try {
             em.getTransaction().begin();
@@ -670,7 +636,6 @@ public class Person {
     }
 
     public void comparingAllProductsByNameDescending(){
-
 
         EntityManager em = ConnectionToDb.connectToDb();
         try {
@@ -709,10 +674,9 @@ public class Person {
                 break;
             case 4: x = Category.ALIMENTE;
                 break;
-            case 5,6: x = Category.ELECTRONICE;
+            case 5: x = Category.ELECTRONICE;
                 break;
         }
-
 
         EntityManager em = ConnectionToDb.connectToDb();
         try {
@@ -752,10 +716,9 @@ public class Person {
                 break;
             case 4: x = Category.ALIMENTE;
                 break;
-            case 5,6: x = Category.ELECTRONICE;
+            case 5: x = Category.ELECTRONICE;
                 break;
         }
-
 
         EntityManager em = ConnectionToDb.connectToDb();
         try {
@@ -781,7 +744,6 @@ public class Person {
         finally{
             em.close();
         }
-
     }
 
     @Transient
@@ -810,7 +772,6 @@ public class Person {
 
         StringBuilder strBuilder = new StringBuilder();
 
-
         int sumColDim = 0;
 
         // Sum all values in tableColDim
@@ -830,7 +791,6 @@ public class Person {
         strBuilder.append(printTableRow("date of birth", tableColDimHM.get("dateOfBirthLen")));
         strBuilder.append(printTableRow("address",       tableColDimHM.get("addressLen")));
         strBuilder.append(printTableRow("username",      tableColDimHM.get("usernameLen")));
-
 
         return strBuilder.toString();
     }
@@ -858,7 +818,6 @@ public class Person {
             strBuilder.append(printTableRow(dateOfBirth, tableColDimHM.get("dateOfBirthLen")));
             strBuilder.append(printTableRow(address, tableColDimHM.get("addressLen")));
             strBuilder.append(printTableRow(username, tableColDimHM.get("usernameLen")));
-
 
             return strBuilder.toString();
         } catch (Exception e) {

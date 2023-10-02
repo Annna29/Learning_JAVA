@@ -1,6 +1,5 @@
 package onlineShop;
 
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.Query;
@@ -10,7 +9,6 @@ import persons.Person;
 import persons.User;
 import products.*;
 import util.*;
-
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -52,7 +50,6 @@ public class OnlineShop {
 
         encryptedPass = RSA.applyRSAEncryptingData(pass,pair.getPublic());
 
-
         EntityManager em = ConnectionToDb.connectToDb();
 
         try {
@@ -84,16 +81,21 @@ public class OnlineShop {
         try {
             em.getTransaction().begin();
 
-//      Admin admin = new Admin(username, Base64.getEncoder().encodeToString(encryptedPass),new PersonKey(stringValOfPrivateKey,stringValOfPublicKey));
-//          em.persist(admin);
+            /*
 
-           Admin foundAdmin= em.find(Admin.class,1);
-           foundAdmin.setAddress("Bucuresti");
-           foundAdmin.setFirstName("Mart");
-           foundAdmin.setSecondName("Mart");
-           foundAdmin.setDateOfBirth("02.05.2000");
-            System.out.println(foundAdmin);
-            em.merge(foundAdmin);
+      Admin admin = new Admin(username, Base64.getEncoder().encodeToString(encryptedPass),new PersonKey(stringValOfPrivateKey,stringValOfPublicKey));
+
+
+
+           admin.setAddress("Bucuresti");
+           admin.setFirstName("Popescu");
+           admin.setSecondName("Marin");
+           admin.setDateOfBirth("02.05.2000");
+            //System.out.println(admin);
+            em.persist(admin);
+
+
+             */
             em.getTransaction().commit();
         }
         finally{
@@ -108,7 +110,9 @@ public class OnlineShop {
         try {
 
             em.getTransaction().begin();
-   /*
+
+            /*
+
             Product prd = new Laptop(Category.ELECTRONICE,"Laptop Dell Precision 5680", "Best of 2023",8900,0,0,"Gaming","Windows");
             em.persist(prd);
             Product prd2 = new Laptop(Category.ELECTRONICE,"Laptop Dell Precision  3581", "Powerfull for gaming",12900,0,0,"Gaming","LINUX");
@@ -166,7 +170,9 @@ public class OnlineShop {
             Product prd28 = new Clothes(Category.VESTIMENTATIE,"Geaca- Colmar","The best choice for ski and snowboard",3800,0,0,"blue");
             em.persist(prd28);
 
-    */
+
+
+             */
 
             em.getTransaction().commit();
         }
@@ -253,7 +259,7 @@ public class OnlineShop {
                     // If SQL query returns something it means that the user is in the DB.
                     isUsernameInDB = (q.getResultList().size() > 0) ? true : false;
 
-                    //em.getTransaction().commit(); // TODO: not needed since this OP is Read-Only
+                    //em.getTransaction().commit(); //
                 }
                 finally{
                     em.close();
@@ -306,7 +312,7 @@ public class OnlineShop {
 
         byte[] RSAPassword = RSA.applyRSAEncryptingData(newPersonPass, keyPair.getPublic());
         // System.out.println(Base64.getEncoder().encodeToString(RSAPassword));
-        newUser.setPassword((RSAPassword)); // TODO: Can be removed. Password is stored as String (encoded)
+        newUser.setPassword((RSAPassword)); //
         newUser.setPass(Base64.getEncoder().encodeToString(RSAPassword));
 
         //
@@ -369,8 +375,8 @@ public class OnlineShop {
                 return null;
             }
 
-            // TODO: Check if case sensitive match is made between DB & Typed In Username
 
+                  //create back Private Key from the String (DB)
             byte[] decodedPrivateKey = Base64.getDecoder().decode(p.getPersonKey().getPrivateKeyVal());
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 
@@ -412,30 +418,18 @@ public class OnlineShop {
 
             switch (option) {
                 case 1:
-//                    OnlineShopMenu.printFilterProductsByTextMenu();
-//                    submenuOpt = OnlineShopMenu.readMenuOption();
-//                    filterProductsByText(user, submenuOpt);
                       filterProductsByText(user);
                     break;
 
                 case 2:
-                 //   OnlineShopMenu.printDisplayProductByPriceMenu();
-                 //   submenuOpt = OnlineShopMenu.readMenuOption();
-                 //   sortProductByPrice(user, submenuOpt);
                     sortProductByPrice(user);
                     break;
 
                 case 3:
-//                    OnlineShopMenu.printDisplayProductByPopularityMenu();
-//                    submenuOpt = OnlineShopMenu.readMenuOption();
-//                    sortProductByPopularity(user, submenuOpt);
                     sortProductByPopularity(user);
                     break;
 
                 case 4:
-//                    OnlineShopMenu.printDisplayProductByNameMenu();
-//                    submenuOpt = OnlineShopMenu.readMenuOption();
- //                   sortProductByName(user, submenuOpt);
                     sortProductByName(user);
                     break;
 
@@ -450,9 +444,6 @@ public class OnlineShop {
                       break;
 
                 case 7:
-//                    OnlineShopMenu.printDisplayProductByDiscountPriceMenu();
-//                    submenuOpt = OnlineShopMenu.readMenuOption();
- //                   sortProductByDiscountPrice(user, submenuOpt);
                     sortProductByDiscountPrice(user);
                     break;
 
@@ -693,9 +684,6 @@ public class OnlineShop {
             switch (option) {
 
                 case 1:
-//                    System.out.println("SELECT the category of product you want to add :\n1. AnimalFood\n2. Clothes\n3. Dermatocosmetics\n4. Food and drinks\n5. Laptop\n6. Mobile phone\n7.Return to previous menu");
-//                    submenuOpt = OnlineShopMenu.readMenuOption();
- //                   manuallyAddProducts(admin, submenuOpt);
                     manuallyAddProducts(admin);
                     break;
 
@@ -881,5 +869,4 @@ public class OnlineShop {
         admin.modifyDiscount(idP, newDiscount);
 
     }
-
 }

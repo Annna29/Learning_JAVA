@@ -28,10 +28,9 @@ public class Admin extends Person{
         super(username, pass,personKey);
     }
 
-    public Admin() {
-    }
+    public Admin() {}
 
-    public void addProducts(Product product){
+    public void addProducts(Product product) {
         product.populateProduct();
 
         EntityManager em = ConnectionToDb.connectToDb();
@@ -43,7 +42,6 @@ public class Admin extends Person{
         finally{
             em.close();
         }
-
     }
 
     public void modifyPrice(int id , int newPrice){
@@ -52,18 +50,16 @@ public class Admin extends Person{
         try {
             em.getTransaction().begin();
             Product foundProduct ;
-              try {
-                   foundProduct = em.find(Product.class, id);
-                  foundProduct.setPrice(newPrice);
-                  foundProduct.setPriceWithDiscount(newPrice-(foundProduct.getDiscount()*newPrice/100));
-                  em.merge(foundProduct);
-                  System.out.println(Constants.MESSAGE_SUCCESS_ACTION_10);
-              }
-              catch(NullPointerException nullPointerException){
-                  System.out.println(Constants.MESSAGE_PROD_NOT_FOUND_11);
-              }
-
-
+            try {
+                foundProduct = em.find(Product.class, id);
+                foundProduct.setPrice(newPrice);
+                foundProduct.setPriceWithDiscount(newPrice-(foundProduct.getDiscount()*newPrice/100));
+                em.merge(foundProduct);
+                System.out.println(Constants.MESSAGE_SUCCESS_ACTION_10);
+            }
+            catch(NullPointerException nullPointerException){
+                System.out.println(Constants.MESSAGE_PROD_NOT_FOUND_11);
+            }
             em.getTransaction().commit();
         }
         finally{
@@ -72,7 +68,6 @@ public class Admin extends Person{
     }
 
     public void modifyDiscount(int id, int newDiscount){
-
 
         EntityManager em = ConnectionToDb.connectToDb();
         try {
@@ -95,37 +90,28 @@ public class Admin extends Person{
         finally{
             em.close();
         }
-
     }
 
     public void seeAllProducts(){
-
-
         EntityManager em = ConnectionToDb.connectToDb();
         try {
             em.getTransaction().begin();
             Query listOfAllProductsFromDb = em.createNativeQuery("Select * from Product", Product.class);
-          try {
-              if (listOfAllProductsFromDb.getResultList().size() != 0)
-                  for (Object p : listOfAllProductsFromDb.getResultList()) {
-                      System.out.println(p + "\n");
-                  }
-
-          }
-           catch(NullPointerException nullPointerException){
-               System.out.println(Constants.MESSAGE_PROD_LIST_EMPTY_12);
-
-           }
-
+            try {
+                if (listOfAllProductsFromDb.getResultList().size() != 0)
+                    for (Object p : listOfAllProductsFromDb.getResultList()) {
+                        System.out.println(p + "\n");
+                    }
+            }
+            catch(NullPointerException nullPointerException){
+                System.out.println(Constants.MESSAGE_PROD_LIST_EMPTY_12);
+            }
             em.getTransaction().commit();
         }
         finally{
             em.close();
         }
-
-
     }
-
 
     public void seeAllProductsTable() {
 
@@ -157,9 +143,7 @@ public class Admin extends Person{
         finally{
             em.close();
         }
-
     }
-
 
     public void modifyDescription(int id, String newDescription) {
 
@@ -181,7 +165,6 @@ public class Admin extends Person{
         finally{
             em.close();
         }
-
     }
 
     public void removeProductById(int id){
@@ -196,7 +179,6 @@ public class Admin extends Person{
             }
             catch (IllegalArgumentException illegalArgumentException){
                 System.out.println(Constants.MESSAGE_PROD_NOT_FOUND_11);
-
             }
 
             em.getTransaction().commit();
@@ -204,43 +186,37 @@ public class Admin extends Person{
         finally{
             em.close();
         }
-
     }
 
     public void seeAllPersons(){
-
         EntityManager em = ConnectionToDb.connectToDb();
         try {
             em.getTransaction().begin();
             Query listOfPersonsFromDb = em.createNativeQuery("Select * from Person", Person.class);
-        try {
+            try {
 //            if (listOfPersonsFromDb.getResultList().size() != 0)
 //                for (Object p : listOfPersonsFromDb.getResultList()) {
 //                    System.out.println(p);
 //                }
 
-            for(int i =0 ; i< listOfPersonsFromDb.getResultList().size(); i++){
-
-                if(i==0){
-                    System.out.println(((Person) listOfPersonsFromDb.getResultList().get(i)).printTableHeader2());
+                for(int i =0 ; i< listOfPersonsFromDb.getResultList().size(); i++){
+                    if(i==0){
+                        System.out.println(((Person) listOfPersonsFromDb.getResultList().get(i)).printTableHeader2());
+                    }
+                    System.out.println( ((Person) listOfPersonsFromDb.getResultList().get(i)).printTableElm2());
                 }
-                System.out.println( ((Person) listOfPersonsFromDb.getResultList().get(i)).printTableElm2());
             }
-        }
-        catch (NullPointerException nullPointerException){
-            System.out.println(Constants.MESSAGE_PERS_LIST_EMPTY_13);
-        }
-
+            catch (NullPointerException nullPointerException){
+                System.out.println(Constants.MESSAGE_PERS_LIST_EMPTY_13);
+            }
             em.getTransaction().commit();
        }
        finally{
             em.close();
         }
-
-        }
+    }
 
     public void removePerson(int id){
-
         EntityManager em = ConnectionToDb.connectToDb();
         try {
             em.getTransaction().begin();
@@ -252,7 +228,6 @@ public class Admin extends Person{
             catch(IllegalArgumentException illegalArgumentException){
                 System.out.println("Person was not found !");
             }
-
             em.getTransaction().commit();
         }
         finally{
@@ -272,7 +247,6 @@ public class Admin extends Person{
         finally{
             em.close();
         }
-
     }
 
     public void populateDetails() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, IOException, InvalidKeySpecException, BadPaddingException, InvalidKeyException {
@@ -282,17 +256,13 @@ public class Admin extends Person{
         String fn = Validation.readAString(ValidationType.DETAILS);
         setFirstName(fn);
 
-
         System.out.println("Enter the second name:");
         String sn = Validation.readAString(ValidationType.DETAILS);
         setSecondName(sn);
 
-
         System.out.println("Enter the username:");
         String un = Validation.readAString(ValidationType.USERNAME);
         setUsername(un);
-
-
 
         String newPersonPass;
         do {
@@ -301,8 +271,8 @@ public class Admin extends Person{
             //newPerson.setPassword( String.copyValueOf(pass));
             newPersonPass = String.copyValueOf(pass);
             isPasswordValid = Validation.validatePassword(newPersonPass, Constants.USERNAME_PASSWORD_LENGTH);
-
         }
+
         while (!isPasswordValid);
         KeyPair pair = RSA.genRSAKeys();
         String stringValOfPrivateKey = Base64.getEncoder().encodeToString(pair.getPrivate().getEncoded());
@@ -319,8 +289,6 @@ public class Admin extends Person{
         System.out.println("Enter the date of birth :");
         String db = Validation.readAString(ValidationType.DETAILS);
         setDateOfBirth(db);
-
-
 
         System.out.println(" Well done, you have added a new admin ! ");
 

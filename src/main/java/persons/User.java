@@ -43,7 +43,6 @@ public class User extends Person {
     }
 
 
-
     public void addMoney(){
         Scanner scanner= new Scanner(System.in);
 
@@ -152,9 +151,7 @@ public class User extends Person {
             em.close();
         }
 
-
     }
-
 
     public void viewSold() {
 
@@ -172,7 +169,6 @@ public class User extends Person {
         }
 
     }
-
 
     @Override
     public String toString() {

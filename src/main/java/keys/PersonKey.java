@@ -2,9 +2,7 @@ package keys;
 
 import jakarta.persistence.*;
 
-
 @Entity
-
 public class PersonKey {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -12,12 +10,9 @@ public class PersonKey {
     private String privateKeyVal;
     private String publicKeyVal;
 
-    public PersonKey() {
-
-    }
+    public PersonKey() {}
 
     public PersonKey( String privateKeyVal, String publicKeyVal) {
-
         this.privateKeyVal = privateKeyVal;
         this.publicKeyVal = publicKeyVal;
     }

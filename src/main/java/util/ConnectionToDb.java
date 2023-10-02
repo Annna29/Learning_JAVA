@@ -11,7 +11,5 @@ public class ConnectionToDb {
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("my-persistence-unit");
         EntityManager em = emf.createEntityManager();
         return em;
-
-
     }
 }

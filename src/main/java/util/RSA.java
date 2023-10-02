@@ -15,16 +15,14 @@ public class RSA {
 
     public static KeyPair genRSAKeys() throws NoSuchAlgorithmException {
 
-        // generate Keys
+        // Generate Keys
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
         generator.initialize(2048);    //generated keysize = 2048 bits;
         KeyPair pair = generator.generateKeyPair();
-
-
         return pair;
     }
 
-     public static byte[] applyRSAEncryptingData (String message, PublicKey publicKey) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public static byte[] applyRSAEncryptingData (String message, PublicKey publicKey) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
 
         byte [] myStuff;
          //now encrypting data
@@ -33,27 +31,28 @@ public class RSA {
 
          byte[] messageBytes = message.getBytes(StandardCharsets.UTF_8);
          byte[] encryptedMessageBytes = encryptCipher.doFinal(messageBytes); // <----------
-
-        // System.out.println("EncriptedBytes: " + new String(encryptedMessageBytes));
+         // System.out.println("EncriptedBytes: " + new String(encryptedMessageBytes));
 
          String encodedMessage = Base64.getEncoder().encodeToString(encryptedMessageBytes);
-      //   System.out.println("String: " + encodedMessage);
+         // System.out.println("String: " + encodedMessage);
+
+/* Check consistency of encodeing/decoding (used for testing)
 
          myStuff = Base64.getDecoder().decode(encodedMessage);
-       //  System.out.println("Decripted to Bytes: " + new String(myStuff));
+         System.out.println("Decripted to Bytes: " + new String(myStuff));
 
-//         if(encryptedMessageBytes.length == myStuff.length){
-//             System.out.println("Encription has same length... checking byte ot byte");
-//             for(int i=0; i<encryptedMessageBytes.length; i++){
-//                 if(encryptedMessageBytes[i] != myStuff[i]){
-//                     System.out.println("Missmatch at byte: " + i);
-//                 }
-//             }
-//         }
+         if(encryptedMessageBytes.length == myStuff.length){
+             System.out.println("Encription has same length... checking byte ot byte");
+             for(int i=0; i<encryptedMessageBytes.length; i++){
+                 if(encryptedMessageBytes[i] != myStuff[i]){
+                     System.out.println("Missmatch at byte: " + i);
+                 }
+             }
+         }
+*/
+        return encryptedMessageBytes;
 
-         return encryptedMessageBytes;
-
-     }
+    }
 
     public static String applyRSADecryptingData( byte[] encryptedMessageBytes, PrivateKey privateKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, IOException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
 
@@ -63,6 +62,6 @@ public class RSA {
         byte [] decryptedMessageBytes = decryptCipher.doFinal(encryptedMessageBytes);
         String decryptedMessage = new String(decryptedMessageBytes,StandardCharsets.UTF_8);
 
-         return decryptedMessage;
+        return decryptedMessage;
     }
 }

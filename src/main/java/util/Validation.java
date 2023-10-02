@@ -16,12 +16,15 @@ public class Validation {
     public static boolean validateNumber(int number){
         return number > 0;
     }
+
     public static boolean validateDiscount(int number){
         return number >= 0 && number <= 100;
     }
+
     public static boolean validateProcesor(String procesor){
         return procesor.length()>=2;
     }
+
     public static boolean validateVolume(int number){
         return number>=10 && number <=500;
     }
@@ -71,7 +74,6 @@ public class Validation {
                 case USERNAME ->  isValid = Validation.validateDetails(result,Constants.USERNAME_PASSWORD_LENGTH);
                 case PROCESSOR -> isValid = Validation.validateProcesor(result);
                 case SEARCHING_TEXT -> isValid=Validation.validateDetails(result,Constants.MINIMUM_LENGTH_FOR_SEARCHING);
-
             }
         }
         while (!isValid);

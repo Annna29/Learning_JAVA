@@ -14,9 +14,7 @@ public class CategoryConverter implements AttributeConverter<Category,Integer> {
 
     @Override
     public Category convertToEntityAttribute(Integer id) {
-
         return Category.getTheCategory(id);
-
     }
 }
 
